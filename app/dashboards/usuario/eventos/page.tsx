@@ -5,6 +5,7 @@ import { EventCards } from "@/components/event-cards"
 import { QuickRegistrationForm } from "@/components/quick-registration-form"
 import { ParticipantList } from "@/components/participant-list"
 import { SuccessNotification } from "@/components/success-notification"
+import { Calendar, Users, Clock, Award } from "lucide-react"
 
 type ViewMode = 'events' | 'registration' | 'participants'
 
@@ -94,35 +95,85 @@ export default function EventosPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-white">Eventos de Caridad</h2>
-        <p className="text-blue-200">Participa en actividades solidarias organizadas por la universidad</p>
+    <div className="space-y-8">
+      {/* Header mejorado */}
+      <div className="text-center text-white">
+        <div className="flex items-center justify-center mb-4">
+          <Calendar className="h-8 w-8 text-purple-400 mr-3" />
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            Eventos de Caridad
+          </h2>
+          <Calendar className="h-8 w-8 text-purple-400 ml-3" />
+        </div>
+        <p className="text-blue-200 text-lg">Participa en actividades solidarias organizadas por la universidad</p>
       </div>
 
       <EventCards onEventRegister={handleEventRegister} onQuickRegister={handleQuickRegister} />
 
-      {/* Información adicional */}
-      <div className="bg-blue-800 rounded-lg p-6 text-white max-w-4xl mx-auto">
-        <h3 className="text-xl font-bold mb-4">¿Cómo funciona el sistema de eventos?</h3>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold mb-2">Inscripción Simplificada:</h4>
-            <ul className="text-sm text-blue-200 space-y-1">
-              <li>• Usamos tu información de perfil automáticamente</li>
-              <li>• Solo necesitas completar datos adicionales</li>
-              <li>• Proceso rápido y sencillo</li>
-              <li>• Confirmación inmediata por email</li>
-            </ul>
+      {/* Información adicional mejorada */}
+      <div className="bg-gradient-to-r from-purple-800 to-purple-900 rounded-xl p-8 text-white shadow-xl max-w-5xl mx-auto">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold mb-2">¿Cómo funciona el sistema de eventos?</h3>
+          <p className="text-purple-200">Proceso simple y beneficioso para todos</p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="bg-purple-700 rounded-full p-2 mt-1">
+                <Clock className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2 text-lg">Inscripción Simplificada:</h4>
+                <ul className="text-sm text-purple-200 space-y-2">
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                    Usamos tu información de perfil automáticamente
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                    Solo necesitas completar datos adicionales
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                    Proceso rápido y sencillo
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                    Confirmación inmediata por email
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div>
-            <h4 className="font-semibold mb-2">Beneficios:</h4>
-            <ul className="text-sm text-blue-200 space-y-1">
-              <li>• Experiencia de voluntariado</li>
-              <li>• Conocimiento de causas sociales</li>
-              <li>• Networking con otros voluntarios</li>
-              <li>• Certificado de participación</li>
-            </ul>
+          
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="bg-purple-700 rounded-full p-2 mt-1">
+                <Award className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2 text-lg">Beneficios:</h4>
+                <ul className="text-sm text-purple-200 space-y-2">
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                    Experiencia de voluntariado valiosa
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                    Conocimiento de causas sociales
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                    Networking con otros voluntarios
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                    Certificado de participación
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>

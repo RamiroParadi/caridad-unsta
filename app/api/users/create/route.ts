@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { UserDbService } from '@/lib/services/user-db-service'
-import { UserRole } from '@/app/generated/prisma'
+import { UserService } from '@/lib/services/user-service'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { clerkId, email, name, role } = body
+    const { clerkId, email, name, role, studentCode } = body
 
-    console.log('📝 API Create User - Datos recibidos:', { clerkId, email, name, role })
+    console.log('📝 API Create User - Datos recibidos:', { clerkId, email, name, role, studentCode })
 
     if (!clerkId || !email || !name) {
       console.error('❌ Missing required fields:', { clerkId: !!clerkId, email: !!email, name: !!name })
@@ -17,39 +16,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validar que el rol sea válido
-    const validRole = role === 'ADMIN' ? UserRole.ADMIN : UserRole.ALUMNO
-
     // Verificar si el usuario ya existe por ClerkId
     console.log('🔍 Verificando si usuario existe por ClerkId:', clerkId)
-    const existingUser = await UserDbService.getUserByClerkId(clerkId)
+    const existingUser = await UserService.getUserByClerkId(clerkId)
     
     let user
     if (existingUser) {
-      console.log('✅ Usuario ya existe por ClerkId, actualizando:', existingUser.email)
-      // Actualizar usuario existente
-      user = await UserDbService.updateUser(clerkId, { email, name })
+      console.log('✅ Usuario ya existe por ClerkId:', existingUser.email)
+      user = existingUser
     } else {
       // Verificar si existe un usuario con el mismo email pero diferente ClerkId
       console.log('🔍 Verificando si existe usuario con mismo email:', email)
-      const existingEmailUser = await UserDbService.getUserByEmail(email)
+      const existingEmailUser = await UserService.getUserByEmail(email)
       
       if (existingEmailUser) {
         console.log('⚠️ Usuario con mismo email ya existe, actualizando ClerkId:', existingEmailUser.clerkId)
         // Actualizar el ClerkId del usuario existente
-        user = await UserDbService.updateUser(existingEmailUser.clerkId, { 
+        user = await UserService.updateUser(existingEmailUser.id, { 
           clerkId: clerkId,
-          email: email,
-          name: name 
+          name: name,
+          studentCode: studentCode || existingEmailUser.studentCode
         })
       } else {
         console.log('🆕 Usuario no existe, creando nuevo usuario...')
         // Crear nuevo usuario
-        user = await UserDbService.createUser({
+        user = await UserService.createUser({
           clerkId,
           email,
           name,
-          role: validRole
+          role: role || 'ALUMNO',
+          studentCode: studentCode || null
         })
         console.log('✅ Usuario creado exitosamente:', user.id)
       }
@@ -59,7 +55,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating user:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

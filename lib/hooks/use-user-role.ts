@@ -59,10 +59,38 @@ export function useUserRole() {
             setUserRole(data.role)
             setUserExists(true)
           } else if (response.status === 404) {
-            // Si no existe en la DB, no crear automáticamente
-            console.log('Usuario no encontrado en BD', { clerkId, email: userEmail, name: userName })
-            setUserExists(false)
-            setUserRole('ALUMNO') // Rol por defecto para mostrar la interfaz
+            // Si no existe en la DB, crear automáticamente
+            console.log('Usuario no encontrado en BD, creando automáticamente...', { clerkId, email: userEmail, name: userName })
+            
+            try {
+              const createResponse = await fetch('/api/users/create', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  clerkId,
+                  email: userEmail,
+                  name: userName,
+                  role: userEmail === 'admin@unsta.edu.ar' ? 'ADMIN' : 'ALUMNO',
+                  studentCode: userEmail === 'admin@unsta.edu.ar' ? 'ADMIN001' : null
+                })
+              })
+              
+              if (createResponse.ok) {
+                console.log('✅ Usuario creado automáticamente')
+                setUserRole(userEmail === 'admin@unsta.edu.ar' ? 'ADMIN' : 'ALUMNO')
+                setUserExists(true)
+              } else {
+                console.error('❌ Error creando usuario')
+                setUserExists(false)
+                setUserRole('ALUMNO')
+              }
+            } catch (error) {
+              console.error('❌ Error creando usuario:', error)
+              setUserExists(false)
+              setUserRole('ALUMNO')
+            }
           } else {
             console.error('Error obteniendo rol de usuario:', response.status)
             setUserExists(false)

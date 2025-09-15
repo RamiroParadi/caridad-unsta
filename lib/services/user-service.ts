@@ -5,11 +5,13 @@ export interface CreateUserData {
   clerkId: string
   email: string
   name: string
+  studentCode?: string
   role?: UserRole
 }
 
 export interface UpdateUserData {
   name?: string
+  studentCode?: string
   role?: UserRole
 }
 
@@ -21,6 +23,7 @@ export class UserService {
         clerkId: data.clerkId,
         email: data.email,
         name: data.name,
+        studentCode: data.studentCode,
         role: data.role || UserRole.ALUMNO
       }
     })
@@ -59,6 +62,14 @@ export class UserService {
   static async deleteUser(id: string) {
     return await prisma.user.delete({
       where: { id }
+    })
+  }
+
+  // Actualizar código de estudiante
+  static async updateStudentCode(clerkId: string, studentCode: string) {
+    return await prisma.user.update({
+      where: { clerkId },
+      data: { studentCode }
     })
   }
 

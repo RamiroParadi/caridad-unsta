@@ -1,193 +1,79 @@
 "use client"
 
-import { useUser } from '@clerk/nextjs'
+import { useUser } from "@clerk/nextjs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { User, AlertCircle, CheckCircle, Loader2, Copy } from "lucide-react"
-import { useState } from 'react'
 
-export default function DebugClerkDataPage() {
-  const { user: clerkUser, isLoaded } = useUser()
-  const [copiedField, setCopiedField] = useState<string | null>(null)
-
-  const copyToClipboard = (text: string, fieldName: string) => {
-    navigator.clipboard.writeText(text)
-    setCopiedField(fieldName)
-    setTimeout(() => setCopiedField(null), 2000)
-  }
+export default function DebugClerkData() {
+  const { user, isLoaded } = useUser()
 
   if (!isLoaded) {
-    return (
-      <div className="min-h-screen bg-blue-900 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-white mx-auto mb-4" />
-          <p className="text-white">Cargando datos de Clerk...</p>
-        </div>
-      </div>
-    )
+    return <div className="p-4">Cargando...</div>
   }
 
-  if (!clerkUser) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              No autenticado
-            </CardTitle>
-            <CardDescription>Debes estar autenticado para ver esta información</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild>
-              <a href="/sign-in">Ir al Login</a>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  const clerkData = {
-    id: clerkUser.id,
-    fullName: clerkUser.fullName,
-    firstName: clerkUser.firstName,
-    lastName: clerkUser.lastName,
-    emailAddresses: clerkUser.emailAddresses,
-    primaryEmailAddressId: clerkUser.primaryEmailAddressId,
-    primaryEmailAddress: clerkUser.primaryEmailAddress,
-    username: clerkUser.username,
-    imageUrl: clerkUser.imageUrl,
-    createdAt: clerkUser.createdAt,
-    updatedAt: clerkUser.updatedAt,
-    lastSignInAt: clerkUser.lastSignInAt,
-    hasImage: clerkUser.hasImage,
-    publicMetadata: clerkUser.publicMetadata,
-    unsafeMetadata: clerkUser.unsafeMetadata,
-    privateMetadata: clerkUser.privateMetadata
-  }
-
-  const primaryEmail = clerkUser.emailAddresses.find(email => email.id === clerkUser.primaryEmailAddressId)
-  const extractedData = {
-    clerkId: clerkUser.id,
-    email: primaryEmail?.emailAddress || clerkUser.emailAddresses[0]?.emailAddress || '',
-    name: clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Usuario',
-    role: 'ALUMNO'
+  if (!user) {
+    return <div className="p-4">No hay usuario logueado</div>
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Debug de Datos de Clerk</h2>
-        <p className="text-muted-foreground">
-          Información detallada del usuario autenticado en Clerk
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 p-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-white text-center mb-2">
+            Debug de Datos de Clerk
+          </h1>
+          <p className="text-blue-200 text-center">
+            Verificar qué datos están llegando desde Clerk
+          </p>
+        </div>
 
-      {/* Datos Extraídos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-500" />
-            Datos Extraídos para Crear Usuario
-          </CardTitle>
-          <CardDescription>
-            Los datos que se enviarían a la API de creación de usuario
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {Object.entries(extractedData).map(([key, value]) => (
-            <div key={key} className="flex items-center justify-between p-3 border rounded-lg">
+        <Card>
+          <CardHeader>
+            <CardTitle>Datos Completos de Clerk</CardTitle>
+            <CardDescription>
+              Información del usuario desde Clerk
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
               <div>
-                <span className="font-medium">{key}:</span>
-                <span className="ml-2 text-sm text-muted-foreground break-all">
-                  {value || <span className="text-red-500 italic">(vacío)</span>}
-                </span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(String(value), key)}
-              >
-                <Copy className="h-4 w-4" />
-                {copiedField === key ? 'Copiado!' : 'Copiar'}
-              </Button>
-            </div>
-          ))}
-          
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <h4 className="font-medium mb-2">JSON para API:</h4>
-            <pre className="text-xs bg-white p-2 rounded border overflow-auto">
-              {JSON.stringify(extractedData, null, 2)}
-            </pre>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Datos Completos de Clerk */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Datos Completos de Clerk
-          </CardTitle>
-          <CardDescription>
-            Todos los datos disponibles del objeto user de Clerk
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {Object.entries(clerkData).map(([key, value]) => (
-              <div key={key} className="p-3 border rounded-lg">
-                <div className="font-medium text-sm mb-1">{key}:</div>
-                <div className="text-xs text-muted-foreground break-all">
-                  {typeof value === 'object' ? (
-                    <pre className="whitespace-pre-wrap">{JSON.stringify(value, null, 2)}</pre>
-                  ) : (
-                    String(value || <span className="text-red-500 italic">(vacío)</span>)
-                  )}
+                <h3 className="font-semibold mb-2">Información Básica:</h3>
+                <div className="bg-gray-100 p-3 rounded-lg">
+                  <p><strong>ID:</strong> {user.id}</p>
+                  <p><strong>Full Name:</strong> {user.fullName || 'No definido'}</p>
+                  <p><strong>First Name:</strong> {user.firstName || 'No definido'}</p>
+                  <p><strong>Last Name:</strong> {user.lastName || 'No definido'}</p>
+                  <p><strong>Username:</strong> {user.username || 'No definido'}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Acciones de Prueba */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Acciones de Prueba</CardTitle>
-          <CardDescription>
-            Prueba la creación de usuario con los datos actuales
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button 
-            onClick={async () => {
-              try {
-                const response = await fetch('/api/users/create', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(extractedData)
-                })
-                
-                if (response.ok) {
-                  const result = await response.json()
-                  alert('Usuario creado exitosamente: ' + JSON.stringify(result, null, 2))
-                } else {
-                  const error = await response.text()
-                  alert('Error: ' + error)
-                }
-              } catch (error) {
-                alert('Error: ' + error)
-              }
-            }}
-          >
-            Probar Creación de Usuario
-          </Button>
-        </CardContent>
-      </Card>
+              <div>
+                <h3 className="font-semibold mb-2">Emails:</h3>
+                <div className="bg-gray-100 p-3 rounded-lg">
+                  {user.emailAddresses.map((email, index) => (
+                    <p key={index}>
+                      <strong>Email {index + 1}:</strong> {email.emailAddress}
+                      {email.verification?.status && (
+                        <span className="ml-2 text-sm text-gray-600">
+                          ({email.verification.status})
+                        </span>
+                      )}
+                    </p>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Datos JSON Completos:</h3>
+                <div className="bg-gray-100 p-3 rounded-lg">
+                  <pre className="text-xs overflow-auto">
+                    {JSON.stringify(user, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

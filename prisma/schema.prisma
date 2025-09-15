@@ -13,6 +13,7 @@ model User {
   clerkId       String                @unique
   email         String                @unique
   name          String
+  studentCode   String?               // Código de alumno (ej: CIA7 0050)
   role          UserRole              @default(ALUMNO)
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
