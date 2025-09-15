@@ -2,40 +2,34 @@
 
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Heart, Shirt } from 'lucide-react'
+import { TreePine, Heart, ArrowLeft, CheckCircle } from 'lucide-react'
 
-interface DonationSection {
-  id: string
-  name: string
-  description: string
-}
-
-export default function VestimentaDonationPage() {
+export default function NavidadDonationPage() {
   const { user } = useUser()
   const { toast } = useToast()
+  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   const [formData, setFormData] = useState({
     donationDescription: '',
+    giftType: '',
     phone: '',
     address: '',
     isAnonymous: false
   })
 
   useEffect(() => {
-    // Simular carga inicial
     const timer = setTimeout(() => {
       setIsLoading(false)
-    }, 1000)
-    
+    }, 500)
     return () => clearTimeout(timer)
   }, [])
 
@@ -54,7 +48,7 @@ export default function VestimentaDonationPage() {
     if (!formData.donationDescription.trim()) {
       toast({
         title: "Error",
-        description: "Describe qué tipo de vestimenta donas",
+        description: "Describe qué regalos navideños donas",
         variant: "destructive"
       })
       return
@@ -72,10 +66,8 @@ export default function VestimentaDonationPage() {
     setIsSubmitting(true)
 
     try {
-      // Crear la sección si no existe
-      let sectionId = 'vestimenta'
-      
-      // Intentar crear la sección primero
+      // Primero intentar crear la sección si no existe
+      let sectionId = 'navidad'
       try {
         const sectionResponse = await fetch('/api/donations/sections', {
           method: 'POST',
@@ -83,17 +75,17 @@ export default function VestimentaDonationPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: 'Donación de Vestimenta',
-            description: 'Ropa, zapatos y accesorios en buen estado'
+            name: 'Navidad',
+            description: 'Donaciones de regalos y elementos navideños'
           }),
         })
         
         if (sectionResponse.ok) {
-          const sectionData = await sectionResponse.json()
-          sectionId = sectionData.id
+          const section = await sectionResponse.json()
+          sectionId = section.id
         }
       } catch (error) {
-        console.log('No se pudo crear la sección, usando ID por defecto')
+        console.log('Usando ID por defecto para la sección')
       }
 
       const response = await fetch('/api/donations', {
@@ -102,8 +94,8 @@ export default function VestimentaDonationPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: 0, // No es monetario, se usa para identificar tipo
-          description: `${formData.donationDescription}\n\nDatos de retiro:\nTeléfono: ${formData.phone}\nDirección: ${formData.address}`,
+          amount: 0,
+          description: `🎄 DONACIÓN NAVIDEÑA 🎄\n\nRegalos navideños donados:\n${formData.donationDescription}\n\nTipo de regalo: ${formData.giftType || 'No especificado'}\n\nDatos de retiro:\nTeléfono: ${formData.phone}\nDirección: ${formData.address}`,
           sectionId: sectionId,
           userId: user.id,
           isAnonymous: formData.isAnonymous,
@@ -115,17 +107,23 @@ export default function VestimentaDonationPage() {
       if (response.ok) {
         toast({
           title: "¡Donación enviada!",
-          description: "Tu donación de vestimenta ha sido registrada correctamente",
+          description: "Tu donación navideña ha sido registrada correctamente",
           variant: "default"
         })
         
         // Limpiar el formulario
         setFormData({
           donationDescription: '',
+          giftType: '',
           phone: '',
           address: '',
           isAnonymous: false
         })
+        
+        // Redirigir después de un momento
+        setTimeout(() => {
+          router.push('/dashboards/usuario/donaciones/festivas')
+        }, 2000)
       } else {
         const error = await response.json()
         toast({
@@ -146,18 +144,29 @@ export default function VestimentaDonationPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando formulario...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-4">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-4 shadow-lg">
-            <Shirt className="h-8 w-8 text-white" />
+            <TreePine className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent mb-2">
-            Donación de Vestimenta
+            Donación Navideña
           </h1>
           <p className="text-gray-600 text-base max-w-xl mx-auto">
-            Contribuye con ropa, calzado y accesorios para ayudar a quienes más lo necesitan
+            Lleva alegría navideña con regalos, decoraciones y elementos festivos
           </p>
         </div>
 
@@ -178,12 +187,12 @@ export default function VestimentaDonationPage() {
               <div className="space-y-2">
                 <Label htmlFor="donationDescription" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  ¿Qué donas? *
+                  ¿Qué regalos navideños donas? *
                 </Label>
                 <div className="relative">
                   <Textarea
                     id="donationDescription"
-                    placeholder="Describe qué tipo de vestimenta donas (ropa de invierno, calzado, tallas, etc.)"
+                    placeholder="Ej: 3 regalos para niños, decoraciones navideñas, libros de cuentos, juguetes nuevos..."
                     value={formData.donationDescription}
                     onChange={(e) => setFormData({ ...formData, donationDescription: e.target.value })}
                     rows={3}
@@ -193,14 +202,30 @@ export default function VestimentaDonationPage() {
                 </div>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                  Sé específico sobre el tipo de ropa, tallas y estado general
+                  Sé específico sobre qué regalos donas y sus cantidades
                 </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="giftType" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  Tipo de regalo (Opcional)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="giftType"
+                    placeholder="Ej: Juguetes, libros, ropa, decoraciones, alimentos..."
+                    value={formData.giftType}
+                    onChange={(e) => setFormData({ ...formData, giftType: e.target.value })}
+                    className="border-2 border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 rounded-xl transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                  />
+                </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                     Teléfono de contacto *
                   </Label>
                   <div className="relative">
@@ -211,14 +236,14 @@ export default function VestimentaDonationPage() {
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       required
-                      className="border-2 border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 rounded-xl transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                      className="border-2 border-gray-200 focus:border-green-600 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-200 bg-white/80 backdrop-blur-sm"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="address" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
                     Dirección para retiro *
                   </Label>
                   <div className="relative">
@@ -229,7 +254,7 @@ export default function VestimentaDonationPage() {
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       rows={2}
                       required
-                      className="border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                      className="border-2 border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 rounded-xl transition-all duration-200 bg-white/80 backdrop-blur-sm"
                     />
                   </div>
                 </div>
@@ -260,62 +285,94 @@ export default function VestimentaDonationPage() {
                       Enviando donación...
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3">
-                      <Heart className="h-5 w-5" />
-                      Enviar Donación
+                    <div className="flex items-center gap-2">
+                      <TreePine className="h-5 w-5" />
+                      Enviar Donación Navideña
                     </div>
                   )}
                 </Button>
               </div>
             </form>
-
-            {isLoading && (
-              <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-yellow-500 border-t-transparent"></div>
-                  <p className="text-sm text-yellow-800 font-medium">
-                    Cargando formulario...
-                  </p>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        <div className="mt-8 p-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl shadow-xl border-0">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-            ¿Qué tipo de vestimenta puedes donar?
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-blue-700 hover:text-blue-800 transition-colors">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="font-medium">Ropa de invierno (abrigos, buzos, pantalones)</span>
+        <Card className="bg-white shadow-xl border-0 rounded-2xl overflow-hidden mt-6">
+          <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white p-6">
+            <CardTitle className="flex items-center gap-3 text-xl font-bold">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <CheckCircle className="h-6 w-6" />
               </div>
-              <div className="flex items-center gap-3 text-blue-700 hover:text-blue-800 transition-colors">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="font-medium">Ropa de verano (remeras, shorts, vestidos)</span>
+              Regalos navideños ideales
+            </CardTitle>
+            <CardDescription className="text-green-100 text-base mt-2">
+              Sugerencias de elementos que puedes donar
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="p-6 bg-gradient-to-br from-white to-green-50">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  Regalos para niños
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    Juguetes nuevos y usados en buen estado
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    Libros de cuentos navideños
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    Juegos de mesa familiares
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    Ropa nueva o en excelente estado
+                  </li>
+                </ul>
               </div>
-              <div className="flex items-center gap-3 text-blue-700 hover:text-blue-800 transition-colors">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="font-medium">Calzado (zapatos, zapatillas, botas)</span>
+              
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  Decoraciones y elementos festivos
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    Decoraciones navideñas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    Luces de Navidad
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    Árboles de Navidad artificiales
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    Alimentos navideños especiales
+                  </li>
+                </ul>
               </div>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-blue-700 hover:text-blue-800 transition-colors">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="font-medium">Accesorios (guantes, gorros, bufandas)</span>
-              </div>
-              <div className="flex items-center gap-3 text-blue-700 hover:text-blue-800 transition-colors">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="font-medium">Ropa interior y calcetines</span>
-              </div>
-              <div className="flex items-center gap-3 text-blue-700 hover:text-blue-800 transition-colors">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="font-medium">Uniformes escolares</span>
-              </div>
-            </div>
-          </div>
+          </CardContent>
+        </Card>
+
+        <div className="mt-6 text-center">
+          <Button 
+            variant="outline" 
+            onClick={() => router.push('/dashboards/usuario/donaciones/festivas')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver a Donaciones Festivas
+          </Button>
         </div>
       </div>
     </div>

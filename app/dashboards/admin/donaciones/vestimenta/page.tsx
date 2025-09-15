@@ -119,7 +119,40 @@ export default function VestimentaDonationsPage() {
   const fetchDonations = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/donations')
+      
+      // Primero obtener todas las secciones para encontrar la de vestimenta
+      const sectionsResponse = await fetch('/api/donations/sections')
+      let vestimentaSectionId = null
+      
+      if (sectionsResponse.ok) {
+        const sections = await sectionsResponse.json()
+        const vestimentaSection = sections.find((section: DonationSection) => 
+          section.name.toLowerCase().includes('vestimenta') ||
+          section.name.toLowerCase().includes('ropa') ||
+          section.name.toLowerCase().includes('vestimenta')
+        )
+        vestimentaSectionId = vestimentaSection?.id
+      }
+      
+      // Si no encontramos la sección, crear una por defecto
+      if (!vestimentaSectionId) {
+        const createSectionResponse = await fetch('/api/donations/sections', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: 'Donación de Vestimenta',
+            description: 'Ropa, zapatos y accesorios en buen estado'
+          })
+        })
+        
+        if (createSectionResponse.ok) {
+          const newSection = await createSectionResponse.json()
+          vestimentaSectionId = newSection.id
+        }
+      }
+      
+      // Obtener donaciones filtradas por sección de vestimenta
+      const response = await fetch(`/api/donations?sectionId=${vestimentaSectionId}`)
       
       if (response.ok) {
         const data = await response.json()

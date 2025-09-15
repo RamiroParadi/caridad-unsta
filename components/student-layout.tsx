@@ -89,7 +89,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
       {/* Contenido principal con sidebar */}
       <div className="flex flex-1 overflow-hidden">
         <StudentSidebar collapsed={sidebarCollapsed} />
-        <div className={`flex-1 flex flex-col gap-6 p-6 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 overflow-auto transition-all duration-300 ${
+        <div className={`flex-1 flex flex-col gap-6 p-6 bg-white overflow-auto transition-all duration-300 ${
           sidebarCollapsed ? 'ml-0' : ''
         }`}>
           {children}

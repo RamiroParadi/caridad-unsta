@@ -1,262 +1,277 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useUser } from '@clerk/nextjs'
-import { useToast } from '@/hooks/use-toast'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Gift, GraduationCap, TreePine, Heart, Calendar, Users, Clock, Cake, Star, Flower, Book } from 'lucide-react'
 
-interface DonationSection {
+interface FestiveDate {
   id: string
   name: string
   description: string
+  icon: React.ComponentType<{ className?: string }>
+  gradient: string
+  bgGradient: string
+  date: string
+  items: string[]
 }
 
-export default function FestivasDonationPage() {
-  const { user } = useUser()
-  const { toast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [sections, setSections] = useState<DonationSection[]>([])
-  const [festivasSection, setFestivasSection] = useState<DonationSection | null>(null)
+interface FestiveDateStatus {
+  id: string
+  name: string
+  isEnabled: boolean
+  startDate: string
+  endDate: string
+  description: string
+}
 
-  const [formData, setFormData] = useState({
-    donationDescription: '',
-    phone: '',
-    address: '',
-    isAnonymous: false
-  })
+const festiveDates: FestiveDate[] = [
+  {
+    id: 'dia-del-nino',
+    name: 'Día del Niño',
+    description: 'Contribuye con juguetes, libros y regalos para hacer felices a los más pequeños',
+    icon: Gift,
+    gradient: 'from-pink-500 to-rose-600',
+    bgGradient: 'from-pink-50 to-rose-50',
+    date: 'Agosto 2024',
+    items: ['Juguetes nuevos y usados', 'Libros infantiles', 'Juegos educativos', 'Materiales de arte']
+  },
+  {
+    id: 'comienzo-clases',
+    name: 'Comienzo de Clases',
+    description: 'Ayuda a los estudiantes con útiles escolares y materiales para el nuevo ciclo lectivo',
+    icon: GraduationCap,
+    gradient: 'from-blue-500 to-indigo-600',
+    bgGradient: 'from-blue-50 to-indigo-50',
+    date: 'Marzo 2025',
+    items: ['Mochilas y cartucheras', 'Cuadernos y lapiceras', 'Calculadoras', 'Diccionarios']
+  },
+  {
+    id: 'navidad',
+    name: 'Navidad',
+    description: 'Lleva alegría navideña con regalos, decoraciones y elementos festivos',
+    icon: TreePine,
+    gradient: 'from-green-500 to-emerald-600',
+    bgGradient: 'from-green-50 to-emerald-50',
+    date: 'Diciembre 2024',
+    items: ['Regalos navideños', 'Decoraciones', 'Juguetes', 'Libros de cuentos']
+  }
+]
+
+export default function FestivasDonationPage() {
+  const router = useRouter()
+  const [festiveDatesStatus, setFestiveDatesStatus] = useState<FestiveDateStatus[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchSections = async () => {
-      try {
-        const response = await fetch('/api/donations/sections')
-        if (response.ok) {
-          const data = await response.json()
-          console.log('Secciones cargadas:', data)
-          setSections(data)
-          
-          // Encontrar la sección de donaciones festivas
-          const festivas = data.find((section: DonationSection) => 
-            section.name.toLowerCase().includes('festivas') || 
-            section.name.toLowerCase().includes('festivo')
-          )
-          console.log('Sección de festivas encontrada:', festivas)
-          setFestivasSection(festivas)
-          
-          if (!festivas) {
-            console.error('No se encontró la sección de festivas en:', data.map(s => s.name))
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching sections:', error)
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar las secciones de donación",
-          variant: "destructive"
-        })
-      }
-    }
+    fetchFestiveDatesStatus()
+  }, [])
 
-    fetchSections()
-  }, [toast])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!festivasSection) {
-      toast({
-        title: "Error",
-        description: "No se encontró la sección de donaciones festivas",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "Debes estar autenticado para hacer una donación",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (!formData.donationDescription.trim()) {
-      toast({
-        title: "Error",
-        description: "Describe qué elementos festivos donas",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (!formData.phone.trim() || !formData.address.trim()) {
-      toast({
-        title: "Error",
-        description: "Ingresa tu teléfono y dirección para el retiro",
-        variant: "destructive"
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-
+  const fetchFestiveDatesStatus = async () => {
     try {
-      const response = await fetch('/api/donations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: 0, // No es monetario, se usa para identificar tipo
-          description: `${formData.donationDescription}\n\nDatos de retiro:\nTeléfono: ${formData.phone}\nDirección: ${formData.address}`,
-          sectionId: festivasSection.id,
-          userId: user.id,
-          isAnonymous: formData.isAnonymous,
-          donorName: user.fullName || 'Usuario',
-          donorEmail: user.primaryEmailAddress?.emailAddress || ''
-        }),
-      })
-
+      const response = await fetch('/api/admin/festive-dates')
       if (response.ok) {
-        toast({
-          title: "¡Donación enviada!",
-          description: "Tu donación festiva ha sido registrada correctamente",
-          variant: "default"
-        })
-        
-        // Limpiar el formulario
-        setFormData({
-          donationDescription: '',
-          phone: '',
-          address: '',
-          isAnonymous: false
-        })
-      } else {
-        const error = await response.json()
-        toast({
-          title: "Error",
-          description: error.message || "No se pudo registrar la donación",
-          variant: "destructive"
-        })
+        const data = await response.json()
+        console.log('Estado de fechas festivas cargado:', data)
+        setFestiveDatesStatus(Object.values(data))
       }
     } catch (error) {
-      console.error('Error submitting donation:', error)
-      toast({
-        title: "Error",
-        description: "Ocurrió un error al enviar la donación",
-        variant: "destructive"
-      })
+      console.error('Error fetching festive dates status:', error)
     } finally {
-      setIsSubmitting(false)
+      setLoading(false)
+    }
+  }
+
+  const handleDateClick = (dateId: string) => {
+    // Verificar si es una fecha festiva personalizada (no está en las fechas estáticas)
+    const isCustomDate = !festiveDates.find(date => date.id === dateId)
+    
+    if (isCustomDate) {
+      router.push(`/dashboards/usuario/donaciones/festivas/custom/${dateId}`)
+    } else {
+      router.push(`/dashboards/usuario/donaciones/festivas/${dateId}`)
+    }
+  }
+
+  const getEnabledFestiveDates = () => {
+    return festiveDatesStatus.filter(status => status.isEnabled).map(status => {
+      const staticDate = festiveDates.find(date => date.id === status.id)
+      if (staticDate) {
+        return staticDate
+      }
+      
+      // Si no existe en las fechas estáticas, crear una dinámica
+      const IconComponent = getIconComponent(status.icon)
+      return {
+        id: status.id,
+        name: status.name,
+        description: status.description,
+        icon: IconComponent,
+        gradient: status.gradient,
+        bgGradient: status.bgGradient,
+        date: `${new Date(status.startDate).toLocaleDateString('es-ES')} - ${new Date(status.endDate).toLocaleDateString('es-ES')}`,
+        items: status.items || ['Elementos varios']
+      }
+    })
+  }
+
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'gift': return Gift
+      case 'graduation-cap': return GraduationCap
+      case 'tree-pine': return TreePine
+      case 'cake': return Cake
+      case 'star': return Star
+      case 'flower': return Flower
+      case 'book': return Book
+      default: return Heart
     }
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 p-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full mb-6 shadow-lg">
+            <Heart className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-700 bg-clip-text text-transparent mb-4">
             Donaciones Festivas
           </h1>
-          <p className="text-gray-600">
-            Contribuye con juguetes, regalos y elementos especiales para fechas festivas
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Elige una fecha especial y contribuye con elementos festivos para hacer felices a quienes más lo necesitan
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Realizar Donación</CardTitle>
-            <CardDescription>
-              Completa el formulario para registrar tu donación festiva
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando fechas festivas disponibles...</p>
+          </div>
+        ) : getEnabledFestiveDates().length === 0 ? (
+          <Card className="bg-white shadow-xl border-0 rounded-2xl overflow-hidden mb-8">
+            <CardContent className="p-12 text-center">
+              <Clock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No hay fechas festivas disponibles
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Las donaciones festivas están temporalmente deshabilitadas. 
+                Vuelve pronto para ver las próximas fechas especiales.
+              </p>
+              <div className="text-sm text-gray-400">
+                <p>Próximas fechas:</p>
+                <ul className="mt-2 space-y-1">
+                  {festiveDatesStatus.map((status) => (
+                    <li key={status.id}>
+                      {status.name}: {new Date(status.startDate).toLocaleDateString('es-ES')} - {new Date(status.endDate).toLocaleDateString('es-ES')}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            {getEnabledFestiveDates().map((date) => {
+              const IconComponent = date.icon
+              const status = festiveDatesStatus.find(s => s.id === date.id)
+              return (
+                <Card 
+                  key={date.id} 
+                  className="bg-white shadow-xl border-0 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer group"
+                  onClick={() => handleDateClick(date.id)}
+                >
+                  <CardHeader className={`bg-gradient-to-r ${date.gradient} text-white p-6`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-white/20 rounded-xl">
+                        <IconComponent className="h-8 w-8" />
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-2 text-sm opacity-90">
+                          <Calendar className="h-4 w-4" />
+                          {status ? `${new Date(status.startDate).toLocaleDateString('es-ES')} - ${new Date(status.endDate).toLocaleDateString('es-ES')}` : date.date}
+                        </div>
+                      </div>
+                    </div>
+                    <CardTitle className="text-xl font-bold mb-2">
+                      {date.name}
+                    </CardTitle>
+                    <CardDescription className="text-white/90 text-sm">
+                      {date.description}
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className={`p-6 bg-gradient-to-br ${date.bgGradient}`}>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                        <Users className="h-4 w-4" />
+                        Elementos que puedes donar:
+                      </div>
+                      <ul className="space-y-2">
+                        {date.items.map((item, index) => (
+                          <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      
+                      <Button 
+                        className={`w-full mt-6 bg-gradient-to-r ${date.gradient} hover:opacity-90 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group-hover:scale-105`}
+                      >
+                        Donar para {date.name}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
+
+        <Card className="bg-white shadow-xl border-0 rounded-2xl overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white p-6">
+            <CardTitle className="flex items-center gap-3 text-xl font-bold">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Heart className="h-6 w-6" />
+              </div>
+              ¿Cómo funciona?
+            </CardTitle>
+            <CardDescription className="text-purple-100 text-base mt-2">
+              Proceso simple para hacer tu donación festiva
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="donationDescription">¿Qué donas?</Label>
-                <Textarea
-                  id="donationDescription"
-                  placeholder="Describe qué elementos festivos donas (juguetes, regalos, decoraciones, etc.)"
-                  value={formData.donationDescription}
-                  onChange={(e) => setFormData({ ...formData, donationDescription: e.target.value })}
-                  rows={3}
-                  required
-                />
+          
+          <CardContent className="p-8 bg-gradient-to-br from-white to-purple-50">
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center space-y-3">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full">
+                  <span className="text-purple-600 font-bold text-lg">1</span>
+                </div>
+                <h3 className="font-semibold text-gray-800">Elige la fecha</h3>
+                <p className="text-sm text-gray-600">Selecciona la celebración para la cual quieres donar</p>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono de contacto</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="Ej: 011-1234-5678"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  required
-                />
+              
+              <div className="text-center space-y-3">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-pink-100 rounded-full">
+                  <span className="text-pink-600 font-bold text-lg">2</span>
+                </div>
+                <h3 className="font-semibold text-gray-800">Completa el formulario</h3>
+                <p className="text-sm text-gray-600">Describe qué donas y proporciona tus datos de contacto</p>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Dirección para retiro</Label>
-                <Textarea
-                  id="address"
-                  placeholder="Ingresa tu dirección completa donde se retirará la donación"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  rows={2}
-                  required
-                />
+              
+              <div className="text-center space-y-3">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-rose-100 rounded-full">
+                  <span className="text-rose-600 font-bold text-lg">3</span>
+                </div>
+                <h3 className="font-semibold text-gray-800">Coordinamos el retiro</h3>
+                <p className="text-sm text-gray-600">Nos contactamos contigo para coordinar la recolección</p>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="anonymous"
-                  checked={formData.isAnonymous}
-                  onChange={(e) => setFormData({ ...formData, isAnonymous: e.target.checked })}
-                  className="rounded border-gray-300"
-                />
-                <Label htmlFor="anonymous">Hacer donación anónima</Label>
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full bg-purple-600 hover:bg-purple-700"
-                disabled={isSubmitting || !festivasSection}
-              >
-                {isSubmitting ? 'Enviando...' : 'Enviar Donación'}
-              </Button>
-            </form>
-
-            {!festivasSection && (
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                <p className="text-sm text-yellow-800">
-                  Cargando sección de donaciones festivas...
-                </p>
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
-
-        <div className="mt-8 p-6 bg-purple-50 rounded-lg">
-          <h3 className="text-lg font-semibold text-purple-900 mb-2">
-            ¿Qué elementos festivos puedes donar?
-          </h3>
-          <ul className="text-purple-800 space-y-1">
-            <li>• Juguetes nuevos y usados en buen estado</li>
-            <li>• Regalos para niños y adolescentes</li>
-            <li>• Decoraciones navideñas y festivas</li>
-            <li>• Libros infantiles y cuentos</li>
-            <li>• Materiales para manualidades</li>
-            <li>• Juegos de mesa y rompecabezas</li>
-            <li>• Artículos para cumpleaños y celebraciones</li>
-            <li>• Disfraces y accesorios festivos</li>
-          </ul>
-        </div>
       </div>
     </div>
   )

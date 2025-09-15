@@ -174,6 +174,25 @@ export class DonationDbService {
   }
 
   /**
+   * Crear una nueva sección de donación
+   */
+  static async createDonationSection(data: { name: string; description?: string }) {
+    try {
+      const section = await prisma.donationSection.create({
+        data: {
+          name: data.name,
+          description: data.description || '',
+          isActive: true
+        }
+      })
+      return section
+    } catch (error) {
+      console.error('Error creating donation section:', error)
+      throw error
+    }
+  }
+
+  /**
    * Obtener secciones de donación
    */
   static async getDonationSections() {

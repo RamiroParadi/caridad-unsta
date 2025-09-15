@@ -127,7 +127,41 @@ export default function MaterialesDonationsPage() {
   const fetchDonations = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/donations')
+      
+      // Primero obtener todas las secciones para encontrar la de materiales
+      const sectionsResponse = await fetch('/api/donations/sections')
+      let materialesSectionId = null
+      
+      if (sectionsResponse.ok) {
+        const sections = await sectionsResponse.json()
+        const materialesSection = sections.find((section: DonationSection) => 
+          section.name.toLowerCase().includes('materiales') ||
+          section.name.toLowerCase().includes('estudio') ||
+          section.name.toLowerCase().includes('libros') ||
+          section.name.toLowerCase().includes('útiles')
+        )
+        materialesSectionId = materialesSection?.id
+      }
+      
+      // Si no encontramos la sección, crear una por defecto
+      if (!materialesSectionId) {
+        const createSectionResponse = await fetch('/api/donations/sections', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: 'Materiales de Estudio',
+            description: 'Libros, útiles escolares y materiales educativos'
+          })
+        })
+        
+        if (createSectionResponse.ok) {
+          const newSection = await createSectionResponse.json()
+          materialesSectionId = newSection.id
+        }
+      }
+      
+      // Obtener donaciones filtradas por sección de materiales
+      const response = await fetch(`/api/donations?sectionId=${materialesSectionId}`)
       
       if (response.ok) {
         const data = await response.json()
