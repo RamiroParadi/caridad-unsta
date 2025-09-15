@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String                @id @default(cuid())
+  clerkId       String                @unique
+  email         String                @unique
+  name          String
+  role          UserRole              @default(ALUMNO)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  activities    ActivityParticipant[]
+  donations     Donation[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Activity {
+  id              String                @id @default(cuid())
+  title           String
+  description     String?
+  date            DateTime
+  location        String?
+  maxParticipants Int?
+  isActive        Boolean               @default(true)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  participants    ActivityParticipant[]
+
+  @@map("activities")
+}
+
+model ActivityParticipant {
+  id         String   @id @default(cuid())
+  userId     String
+  activityId String
+  joinedAt   DateTime @default(now())
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityId])
+  @@map("activity_participants")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType @default(GENERAL)
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model DonationSection {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  donations   Donation[]
+
+  @@map("donation_sections")
+}
+
+model Donation {
+  id          String          @id @default(cuid())
+  amount      Float
+  description String?
+  isAnonymous Boolean         @default(false)
+  status      DonationStatus  @default(PENDIENTE)
+  donorName   String?
+  donorEmail  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  userId      String
+  sectionId   String
+  section     DonationSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("donations")
+}
+
+enum UserRole {
+  ADMIN
+  ALUMNO
+}
+
+enum NotificationType {
+  GENERAL
+  ACTIVIDAD
+  DONACION
+  URGENTE
+}
+
+enum DonationStatus {
+  PENDIENTE
+  CONFIRMADA
+  RECHAZADA
+}
