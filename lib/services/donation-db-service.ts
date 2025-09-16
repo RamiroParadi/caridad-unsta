@@ -209,6 +209,21 @@ export class DonationDbService {
   }
 
   /**
+   * Eliminar una sección de donación
+   */
+  static async deleteDonationSection(id: string) {
+    try {
+      const section = await prisma.donationSection.delete({
+        where: { id }
+      })
+      return section
+    } catch (error) {
+      console.error('Error deleting donation section:', error)
+      throw error
+    }
+  }
+
+  /**
    * Obtener estadísticas de donaciones por sección
    */
   static async getDonationStats(sectionId?: string) {

@@ -1,51 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-// Simulamos una base de datos simple para el estado de las fechas festivas
-// En un proyecto real, esto estaría en la base de datos
-let festiveDatesStatus: Record<string, any> = {
-  'dia-del-nino': {
-    id: 'dia-del-nino',
-    name: 'Día del Niño',
-    isEnabled: false,
-    startDate: '2024-07-01',
-    endDate: '2024-08-31',
-    description: 'Donaciones de juguetes y regalos para el Día del Niño',
-    icon: 'gift',
-    gradient: 'from-pink-500 to-rose-600',
-    bgGradient: 'from-pink-50 to-rose-50',
-    items: ['Juguetes nuevos y usados', 'Libros infantiles', 'Juegos educativos', 'Materiales de arte']
-  },
-  'comienzo-clases': {
-    id: 'comienzo-clases',
-    name: 'Comienzo de Clases',
-    isEnabled: false,
-    startDate: '2025-02-01',
-    endDate: '2025-03-31',
-    description: 'Donaciones de útiles escolares para el inicio del ciclo lectivo',
-    icon: 'graduation-cap',
-    gradient: 'from-blue-500 to-indigo-600',
-    bgGradient: 'from-blue-50 to-indigo-50',
-    items: ['Mochilas y cartucheras', 'Cuadernos y lapiceras', 'Calculadoras', 'Diccionarios']
-  },
-  'navidad': {
-    id: 'navidad',
-    name: 'Navidad',
-    isEnabled: false,
-    startDate: '2024-11-01',
-    endDate: '2024-12-31',
-    description: 'Donaciones de regalos navideños',
-    icon: 'tree-pine',
-    gradient: 'from-green-500 to-emerald-600',
-    bgGradient: 'from-green-50 to-emerald-50',
-    items: ['Regalos navideños', 'Decoraciones', 'Juguetes', 'Libros de cuentos']
-  }
-}
+import { FestiveDateService } from '@/lib/services/festive-date-service'
+import { DonationDbService } from '@/lib/services/donation-db-service'
 
 export async function GET() {
   try {
-    return NextResponse.json(festiveDatesStatus)
+    const festiveDates = await FestiveDateService.getAllFestiveDates()
+    
+    // Convertir a formato compatible con el frontend
+    const formattedDates = festiveDates.reduce((acc, date) => {
+      acc[date.id] = {
+        id: date.id,
+        name: date.name,
+        description: date.description,
+        startDate: date.startDate.toISOString().split('T')[0],
+        endDate: date.endDate.toISOString().split('T')[0],
+        isEnabled: date.isEnabled,
+        icon: date.icon,
+        gradient: date.gradient,
+        bgGradient: date.bgGradient,
+        items: date.items,
+        sectionId: date.sectionId
+      }
+      return acc
+    }, {} as Record<string, any>)
+
+    return NextResponse.json(formattedDates)
   } catch (error) {
-    console.error('Error fetching festive dates status:', error)
+    console.error('Error fetching festive dates:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -55,7 +36,16 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    let body
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      console.error('Error parsing JSON:', jsonError)
+      return NextResponse.json(
+        { error: 'Invalid JSON format' },
+        { status: 400 }
+      )
+    }
     const { name, description, startDate, endDate, icon, gradient, bgGradient, items } = body
 
     if (!name || !description || !startDate || !endDate) {
@@ -65,38 +55,62 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generar ID único basado en el nombre
-    const id = name.toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '')
-      .replace(/\s+/g, '-')
-      .trim()
-
-    // Verificar que no exista ya
-    if (festiveDatesStatus[id]) {
+    // Verificar que no exista ya una fecha festiva con el mismo nombre
+    const existingFestiveDate = await FestiveDateService.getFestiveDateByName(name)
+    if (existingFestiveDate) {
       return NextResponse.json(
         { error: 'A festive date with this name already exists' },
         { status: 409 }
       )
     }
 
-    const newFestiveDate = {
-      id,
+    // Crear la sección de donación correspondiente
+    let sectionId = null
+    
+    try {
+      const section = await DonationDbService.createDonationSection({
+        name,
+        description: `Donaciones para ${name}`
+      })
+      sectionId = section.id
+      console.log(`Sección de donación creada para fecha festiva:`, section)
+    } catch (sectionError) {
+      console.error('Error creating donation section:', sectionError)
+      // Continuar sin la sección si hay error
+    }
+
+    // Crear la fecha festiva en la base de datos
+    const festiveDate = await FestiveDateService.createFestiveDate({
       name,
       description,
-      startDate,
-      endDate,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       isEnabled: false, // Por defecto deshabilitado
       icon: icon || 'heart',
       gradient: gradient || 'from-purple-500 to-pink-600',
       bgGradient: bgGradient || 'from-purple-50 to-pink-50',
-      items: items || ['Elementos varios']
+      items: items || ['Elementos varios'],
+      sectionId
+    })
+
+    console.log(`New festive date created:`, festiveDate)
+
+    // Retornar en formato compatible con el frontend
+    const response = {
+      id: festiveDate.id,
+      name: festiveDate.name,
+      description: festiveDate.description,
+      startDate: festiveDate.startDate.toISOString().split('T')[0],
+      endDate: festiveDate.endDate.toISOString().split('T')[0],
+      isEnabled: festiveDate.isEnabled,
+      icon: festiveDate.icon,
+      gradient: festiveDate.gradient,
+      bgGradient: festiveDate.bgGradient,
+      items: festiveDate.items,
+      sectionId: festiveDate.sectionId
     }
 
-    festiveDatesStatus[id] = newFestiveDate
-
-    console.log(`New festive date created:`, newFestiveDate)
-
-    return NextResponse.json(newFestiveDate, { status: 201 })
+    return NextResponse.json(response, { status: 201 })
   } catch (error) {
     console.error('Error creating festive date:', error)
     return NextResponse.json(
@@ -109,7 +123,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, isEnabled, startDate, endDate } = body
+    const { id, isEnabled, startDate, endDate, sectionId } = body
 
     if (!id) {
       return NextResponse.json(
@@ -118,26 +132,35 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    if (!festiveDatesStatus[id]) {
-      return NextResponse.json(
-        { error: 'Festive date not found' },
-        { status: 404 }
-      )
+    // Actualizar la fecha festiva en la base de datos
+    const updateData: any = {}
+    if (isEnabled !== undefined) updateData.isEnabled = isEnabled
+    if (startDate) updateData.startDate = new Date(startDate)
+    if (endDate) updateData.endDate = new Date(endDate)
+    if (sectionId) updateData.sectionId = sectionId
+
+    const updatedFestiveDate = await FestiveDateService.updateFestiveDate(id, updateData)
+
+    console.log(`Festive date ${id} updated:`, updatedFestiveDate)
+
+    // Retornar en formato compatible con el frontend
+    const response = {
+      id: updatedFestiveDate.id,
+      name: updatedFestiveDate.name,
+      description: updatedFestiveDate.description,
+      startDate: updatedFestiveDate.startDate.toISOString().split('T')[0],
+      endDate: updatedFestiveDate.endDate.toISOString().split('T')[0],
+      isEnabled: updatedFestiveDate.isEnabled,
+      icon: updatedFestiveDate.icon,
+      gradient: updatedFestiveDate.gradient,
+      bgGradient: updatedFestiveDate.bgGradient,
+      items: updatedFestiveDate.items,
+      sectionId: updatedFestiveDate.sectionId
     }
 
-    // Actualizar el estado
-    festiveDatesStatus[id] = {
-      ...festiveDatesStatus[id],
-      isEnabled: isEnabled !== undefined ? isEnabled : festiveDatesStatus[id].isEnabled,
-      startDate: startDate || festiveDatesStatus[id].startDate,
-      endDate: endDate || festiveDatesStatus[id].endDate
-    }
-
-    console.log(`Festive date ${id} updated:`, festiveDatesStatus[id])
-
-    return NextResponse.json(festiveDatesStatus[id])
+    return NextResponse.json(response)
   } catch (error) {
-    console.error('Error updating festive date status:', error)
+    console.error('Error updating festive date:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -157,14 +180,22 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    if (!festiveDatesStatus[id]) {
-      return NextResponse.json(
-        { error: 'Festive date not found' },
-        { status: 404 }
-      )
-    }
+    // Obtener la fecha festiva antes de eliminarla para obtener el sectionId
+    const festiveDate = await FestiveDateService.getFestiveDateById(id)
+    
+    // Eliminar la fecha festiva de la base de datos
+    await FestiveDateService.deleteFestiveDate(id)
 
-    delete festiveDatesStatus[id]
+    // Si tiene sectionId, eliminar también la sección de donación
+    if (festiveDate?.sectionId) {
+      try {
+        await DonationDbService.deleteDonationSection(festiveDate.sectionId)
+        console.log(`Donation section ${festiveDate.sectionId} deleted`)
+      } catch (sectionError) {
+        console.error('Error deleting donation section:', sectionError)
+        // No fallar la operación si no se puede eliminar la sección
+      }
+    }
 
     console.log(`Festive date ${id} deleted`)
 

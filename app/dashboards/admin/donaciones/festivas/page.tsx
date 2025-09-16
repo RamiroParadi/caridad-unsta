@@ -35,6 +35,7 @@ interface FestiveDateStatus {
   gradient?: string
   bgGradient?: string
   items?: string[]
+  sectionId?: string
 }
 
 export default function FestivasDonationsPage() {
@@ -54,7 +55,7 @@ export default function FestivasDonationsPage() {
     icon: 'heart',
     gradient: 'from-purple-500 to-pink-600',
     bgGradient: 'from-purple-50 to-pink-50',
-    items: ['Elementos varios']
+    items: ['']
   })
   const [isCreating, setIsCreating] = useState(false)
 
@@ -63,11 +64,15 @@ export default function FestivasDonationsPage() {
     fetchFestiveDatesStatus()
   }, [])
 
+  // Limpiar fechas inválidas automáticamente
   useEffect(() => {
-    if (sections.length > 0) {
-      fetchDonations()
+    if (createForm.startDate && isNaN(new Date(createForm.startDate + 'T00:00:00').getTime())) {
+      setCreateForm(prev => ({ ...prev, startDate: '' }))
     }
-  }, [sections, selectedSection])
+    if (createForm.endDate && isNaN(new Date(createForm.endDate + 'T00:00:00').getTime())) {
+      setCreateForm(prev => ({ ...prev, endDate: '' }))
+    }
+  }, [createForm.startDate, createForm.endDate])
 
   const fetchSections = useCallback(async () => {
     try {
@@ -76,23 +81,18 @@ export default function FestivasDonationsPage() {
         const data = await response.json()
         console.log('Secciones cargadas:', data)
         
-        // Filtrar solo las secciones festivas específicas
+        // Filtrar solo las secciones que tienen fechas festivas asociadas
         const festiveSections = data.filter((section: {id: string, name: string, description: string}) => {
-          const name = section.name.toLowerCase()
           const sectionId = section.id
           
-          // Verificar si es una fecha festiva personalizada por ID o nombre
-          const isCustomFestiveDate = festiveDatesStatus.some((festiveDate: FestiveDateStatus) => 
-            festiveDate.id === sectionId || festiveDate.name.toLowerCase() === name
-          )
+          // Verificar si esta sección tiene una fecha festiva asociada
+          const hasFestiveDate = festiveDatesStatus.some((festiveDate: FestiveDateStatus) => {
+            return (festiveDate as any).sectionId === sectionId
+          })
           
-          return (
-            name === 'día del niño' ||
-            name === 'comienzo de clases' ||
-            name === 'navidad' ||
-            name.includes('festivas') ||
-            isCustomFestiveDate
-          )
+          console.log(`Section "${section.name}" (${sectionId}): hasFestiveDate=${hasFestiveDate}`)
+          
+          return hasFestiveDate
         })
         
         setSections(festiveSections)
@@ -113,7 +113,10 @@ export default function FestivasDonationsPage() {
       if (response.ok) {
         const data = await response.json()
         console.log('Estado de fechas festivas cargado:', data)
-        setFestiveDatesStatus(Object.values(data))
+        const festiveDatesArray = Object.values(data)
+        console.log('Festive dates array:', festiveDatesArray)
+        console.log('First festive date sectionId:', (festiveDatesArray[0] as any)?.sectionId)
+        setFestiveDatesStatus(festiveDatesArray as FestiveDateStatus[])
       }
     } catch (error) {
       console.error('Error fetching festive dates status:', error)
@@ -171,8 +174,54 @@ export default function FestivasDonationsPage() {
   }
 
   const createFestiveDate = async () => {
-    if (!createForm.name || !createForm.description || !createForm.startDate || !createForm.endDate) {
-      alert('Por favor completa todos los campos requeridos')
+    // Validación mejorada
+    const errors = []
+    
+    if (!createForm.name || createForm.name.trim() === '') {
+      errors.push('El nombre es requerido')
+    }
+    
+    if (!createForm.description || createForm.description.trim() === '') {
+      errors.push('La descripción es requerida')
+    }
+    
+    if (!createForm.startDate) {
+      errors.push('La fecha de inicio es requerida')
+    }
+    
+    if (!createForm.endDate) {
+      errors.push('La fecha de fin es requerida')
+    }
+    
+    // Validar que las fechas sean válidas
+    if (createForm.startDate) {
+      const startDate = new Date(createForm.startDate + 'T00:00:00')
+      if (isNaN(startDate.getTime())) {
+        errors.push(`La fecha de inicio "${createForm.startDate}" no es válida. Verifica que la fecha exista.`)
+      }
+    }
+    
+    if (createForm.endDate) {
+      const endDate = new Date(createForm.endDate + 'T00:00:00')
+      if (isNaN(endDate.getTime())) {
+        errors.push(`La fecha de fin "${createForm.endDate}" no es válida. Verifica que la fecha exista.`)
+      }
+    }
+    
+    // Validar que la fecha de fin sea posterior a la de inicio
+    if (createForm.startDate && createForm.endDate) {
+      const startDate = new Date(createForm.startDate + 'T00:00:00')
+      const endDate = new Date(createForm.endDate + 'T00:00:00')
+      
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        if (endDate <= startDate) {
+          errors.push('La fecha de fin debe ser posterior a la fecha de inicio')
+        }
+      }
+    }
+    
+    if (errors.length > 0) {
+      alert(`Por favor corrige los siguientes errores:\n\n${errors.join('\n')}`)
       return
     }
 
@@ -183,7 +232,18 @@ export default function FestivasDonationsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(createForm),
+        body: JSON.stringify({
+          name: createForm.name.trim(),
+          description: createForm.description.trim(),
+          startDate: createForm.startDate,
+          endDate: createForm.endDate,
+          icon: createForm.icon,
+          gradient: createForm.gradient,
+          bgGradient: createForm.bgGradient,
+          items: createForm.items[0] && createForm.items[0].trim()
+            ? createForm.items[0].split(',').map(item => item.trim()).filter(item => item)
+            : ['Elementos varios']
+        }),
       })
 
       if (response.ok) {
@@ -198,16 +258,22 @@ export default function FestivasDonationsPage() {
           icon: 'heart',
           gradient: 'from-purple-500 to-pink-600',
           bgGradient: 'from-purple-50 to-pink-50',
-          items: ['Elementos varios']
+          items: ['']
         })
         console.log('Nueva fecha festiva creada:', newDate)
+        
+        // Recargar secciones y donaciones para incluir la nueva fecha festiva
+        setTimeout(() => {
+          fetchSections()
+          fetchDonations()
+        }, 500)
       } else {
         const error = await response.json()
-        alert(error.error || 'Error al crear la fecha festiva')
+        alert(`Error al crear la fecha festiva: ${error.error || 'Error desconocido'}`)
       }
     } catch (error) {
       console.error('Error creating festive date:', error)
-      alert('Error al crear la fecha festiva')
+      alert('Error de conexión. Por favor, inténtalo de nuevo.')
     } finally {
       setIsCreating(false)
     }
@@ -224,8 +290,31 @@ export default function FestivasDonationsPage() {
       })
 
       if (response.ok) {
+        // Encontrar la fecha festiva para obtener su sectionId
+        const festiveDate = festiveDatesStatus.find(fd => fd.id === id)
+        
+        // Eliminar la fecha festiva del estado
         setFestiveDatesStatus(prev => prev.filter(date => date.id !== id))
+        
+        // Si tiene sectionId, eliminar también la sección de donación
+        if (festiveDate?.sectionId) {
+          try {
+            await fetch(`/api/donations/sections?id=${festiveDate.sectionId}`, {
+              method: 'DELETE',
+            })
+            console.log(`Sección de donación ${festiveDate.sectionId} eliminada`)
+          } catch (sectionError) {
+            console.error('Error eliminando sección de donación:', sectionError)
+          }
+        }
+        
         console.log(`Fecha festiva ${id} eliminada`)
+        
+        // Recargar secciones y donaciones para actualizar el filtro y las estadísticas
+        setTimeout(() => {
+          fetchSections()
+          fetchDonations()
+        }, 500)
       } else {
         const error = await response.json()
         alert(error.error || 'Error al eliminar la fecha festiva')
@@ -239,40 +328,34 @@ export default function FestivasDonationsPage() {
   const fetchDonations = useCallback(async () => {
     setLoading(true)
     try {
-      let url = '/api/donations'
-      if (selectedSection) {
-        url += `?sectionId=${selectedSection}`
-      }
-      
-      const response = await fetch(url)
+      // Obtener todas las donaciones
+      const response = await fetch('/api/donations')
       if (response.ok) {
         const data = await response.json()
         console.log('Donaciones cargadas:', data)
         console.log('Festive dates status:', festiveDatesStatus)
         console.log('Selected section:', selectedSection)
         
-        // Filtrar solo las donaciones que realmente son festivas
-        const festiveDonations = data.filter((donation: Donation) => {
-          const sectionName = donation.section?.name?.toLowerCase() || ''
+        // Filtrar solo las donaciones que tienen fechas festivas asociadas
+        let festiveDonations = data.filter((donation: Donation) => {
           const sectionId = donation.section?.id || ''
           
-          // Verificar si es una fecha festiva personalizada por ID
-          const isCustomFestiveDate = festiveDatesStatus.some((festiveDate: FestiveDateStatus) => 
-            festiveDate.id === sectionId || festiveDate.name.toLowerCase() === sectionName
-          )
+          // Verificar si esta donación pertenece a una sección con fecha festiva asociada
+          const hasFestiveDate = festiveDatesStatus.some((festiveDate: FestiveDateStatus) => {
+            return (festiveDate as any).sectionId === sectionId
+          })
           
-          const isFestive = (
-            sectionName === 'día del niño' ||
-            sectionName === 'comienzo de clases' ||
-            sectionName === 'navidad' ||
-            sectionName.includes('festivas') ||
-            isCustomFestiveDate
-          )
+          console.log(`Donation ${donation.id}: sectionId="${sectionId}", hasFestiveDate=${hasFestiveDate}`)
           
-          console.log(`Donation ${donation.id}: sectionName="${sectionName}", sectionId="${sectionId}", isCustomFestiveDate=${isCustomFestiveDate}, isFestive=${isFestive}`)
-          
-          return isFestive
+          return hasFestiveDate
         })
+        
+        // Si hay una sección específica seleccionada, filtrar por esa sección
+        if (selectedSection) {
+          festiveDonations = festiveDonations.filter((donation: Donation) => {
+            return donation.section?.id === selectedSection
+          })
+        }
         
         console.log('Donaciones festivas filtradas:', festiveDonations)
         setDonations(festiveDonations)
@@ -283,6 +366,13 @@ export default function FestivasDonationsPage() {
       setLoading(false)
     }
   }, [selectedSection, festiveDatesStatus])
+
+  // Cargar donaciones cuando las fechas festivas estén disponibles
+  useEffect(() => {
+    if (festiveDatesStatus.length > 0) {
+      fetchDonations()
+    }
+  }, [fetchDonations, festiveDatesStatus])
 
   const getSectionIcon = (sectionName: string) => {
     const name = sectionName.toLowerCase()
@@ -375,7 +465,32 @@ export default function FestivasDonationsPage() {
               </CardDescription>
             </div>
             <Button 
-              onClick={() => setShowCreateForm(!showCreateForm)}
+              onClick={() => {
+                if (!showCreateForm) {
+                  // Limpiar el formulario al abrir y verificar fechas inválidas
+                  const cleanForm = {
+                    name: '',
+                    description: '',
+                    startDate: '',
+                    endDate: '',
+                    icon: 'heart',
+                    gradient: 'from-purple-500 to-pink-600',
+                    bgGradient: 'from-purple-50 to-pink-50',
+                    items: ['']
+                  }
+                  
+                  // Verificar si hay fechas inválidas en el estado actual y limpiarlas
+                  if (createForm.startDate && isNaN(new Date(createForm.startDate + 'T00:00:00').getTime())) {
+                    cleanForm.startDate = ''
+                  }
+                  if (createForm.endDate && isNaN(new Date(createForm.endDate + 'T00:00:00').getTime())) {
+                    cleanForm.endDate = ''
+                  }
+                  
+                  setCreateForm(cleanForm)
+                }
+                setShowCreateForm(!showCreateForm)
+              }}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -405,7 +520,11 @@ export default function FestivasDonationsPage() {
                     placeholder="Ej: Día de la Madre"
                     value={createForm.name}
                     onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                    className={!createForm.name ? "border-red-300" : ""}
                   />
+                  {!createForm.name && (
+                    <p className="text-xs text-red-500">Este campo es requerido</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -415,7 +534,11 @@ export default function FestivasDonationsPage() {
                     placeholder="Ej: Donaciones especiales para el Día de la Madre"
                     value={createForm.description}
                     onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+                    className={!createForm.description ? "border-red-300" : ""}
                   />
+                  {!createForm.description && (
+                    <p className="text-xs text-red-500">Este campo es requerido</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -424,8 +547,34 @@ export default function FestivasDonationsPage() {
                     id="create-start"
                     type="date"
                     value={createForm.startDate}
-                    onChange={(e) => setCreateForm({ ...createForm, startDate: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      // Limpiar fecha inválida automáticamente
+                      if (value && isNaN(new Date(value + 'T00:00:00').getTime())) {
+                        setCreateForm({ ...createForm, startDate: '' })
+                        return
+                      }
+                      setCreateForm({ ...createForm, startDate: value })
+                    }}
+                    className={
+                      !createForm.startDate || 
+                      (createForm.startDate && isNaN(new Date(createForm.startDate + 'T00:00:00').getTime()))
+                        ? "border-red-300" 
+                        : ""
+                    }
                   />
+                  {!createForm.startDate && (
+                    <p className="text-xs text-red-500">Este campo es requerido</p>
+                  )}
+                  {createForm.startDate && isNaN(new Date(createForm.startDate + 'T00:00:00').getTime()) && (
+                    <div className="text-xs text-red-500">
+                      <p>La fecha "{createForm.startDate}" no es válida.</p>
+                      <p className="text-blue-600 mt-1">
+                        💡 Sugerencia: Febrero tiene máximo 28 días (o 29 en año bisiesto). 
+                        Prueba con "28/02/2025" o "01/03/2025".
+                      </p>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -434,8 +583,38 @@ export default function FestivasDonationsPage() {
                     id="create-end"
                     type="date"
                     value={createForm.endDate}
-                    onChange={(e) => setCreateForm({ ...createForm, endDate: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      // Limpiar fecha inválida automáticamente
+                      if (value && isNaN(new Date(value + 'T00:00:00').getTime())) {
+                        setCreateForm({ ...createForm, endDate: '' })
+                        return
+                      }
+                      setCreateForm({ ...createForm, endDate: value })
+                    }}
+                    className={
+                      !createForm.endDate || 
+                      (createForm.endDate && isNaN(new Date(createForm.endDate + 'T00:00:00').getTime())) ||
+                      (createForm.startDate && createForm.endDate && 
+                       !isNaN(new Date(createForm.startDate + 'T00:00:00').getTime()) && 
+                       !isNaN(new Date(createForm.endDate + 'T00:00:00').getTime()) && 
+                       new Date(createForm.endDate + 'T00:00:00') <= new Date(createForm.startDate + 'T00:00:00'))
+                        ? "border-red-300" 
+                        : ""
+                    }
                   />
+                  {!createForm.endDate && (
+                    <p className="text-xs text-red-500">Este campo es requerido</p>
+                  )}
+                  {createForm.endDate && isNaN(new Date(createForm.endDate + 'T00:00:00').getTime()) && (
+                    <p className="text-xs text-red-500">La fecha "{createForm.endDate}" no es válida. Verifica que la fecha exista.</p>
+                  )}
+                  {createForm.startDate && createForm.endDate && 
+                   !isNaN(new Date(createForm.startDate + 'T00:00:00').getTime()) && 
+                   !isNaN(new Date(createForm.endDate + 'T00:00:00').getTime()) && 
+                   new Date(createForm.endDate + 'T00:00:00') <= new Date(createForm.startDate + 'T00:00:00') && (
+                    <p className="text-xs text-red-500">La fecha de fin debe ser posterior a la fecha de inicio</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -480,12 +659,19 @@ export default function FestivasDonationsPage() {
                 <Input
                   id="create-items"
                   placeholder="Ej: Flores, chocolates, libros, ropa"
-                  value={createForm.items.join(', ')}
-                  onChange={(e) => setCreateForm({ 
-                    ...createForm, 
-                    items: e.target.value.split(',').map(item => item.trim()).filter(item => item)
-                  })}
+                  value={createForm.items.length === 1 ? createForm.items[0] : createForm.items.join(', ')}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    // Permitir escribir libremente, solo procesar al enviar
+                    setCreateForm({ 
+                      ...createForm, 
+                      items: value ? [value] : [''] // Guardar como texto libre temporalmente
+                    })
+                  }}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Separa cada elemento con una coma. Ejemplo: "Flores, chocolates, libros, ropa"
+                </p>
               </div>
               
               <div className="flex gap-2 mt-4">
@@ -604,9 +790,9 @@ export default function FestivasDonationsPage() {
                 className="w-full px-4 py-2 border rounded-md"
               >
                 <option value="">Todas las fechas festivas</option>
-                {sections.map((section) => (
-                  <option key={section.id} value={section.id}>
-                    {section.name}
+                {festiveDatesStatus.map((festiveDate) => (
+                  <option key={festiveDate.id} value={(festiveDate as any).sectionId}>
+                    {festiveDate.name}
                   </option>
                 ))}
               </select>
@@ -629,48 +815,40 @@ export default function FestivasDonationsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Día del Niño</CardTitle>
-            <Gift className="h-4 w-4 text-pink-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {donations.filter(d => d.section?.name.toLowerCase().includes('día del niño')).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Juguetes y regalos
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Comienzo de Clases</CardTitle>
-            <GraduationCap className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {donations.filter(d => d.section?.name.toLowerCase().includes('comienzo de clases')).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Útiles escolares
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Navidad</CardTitle>
-            <TreePine className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {donations.filter(d => d.section?.name.toLowerCase().includes('navidad')).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Regalos navideños
-            </p>
-          </CardContent>
-        </Card>
+        {festiveDatesStatus.slice(0, 3).map((festiveDate) => {
+          const sectionDonations = donations.filter(d => d.section?.id === (festiveDate as any).sectionId)
+          
+          // Iconos dinámicos basados en la fecha festiva
+          const getIcon = (iconName?: string) => {
+            switch (iconName) {
+              case 'gift': return <Gift className="h-4 w-4 text-pink-500" />
+              case 'graduation-cap': return <GraduationCap className="h-4 w-4 text-blue-500" />
+              case 'tree-pine': return <TreePine className="h-4 w-4 text-green-500" />
+              case 'flower': return <Heart className="h-4 w-4 text-pink-500" />
+              case 'cake': return <Heart className="h-4 w-4 text-yellow-500" />
+              case 'star': return <Heart className="h-4 w-4 text-yellow-500" />
+              case 'book': return <GraduationCap className="h-4 w-4 text-blue-500" />
+              default: return <Heart className="h-4 w-4 text-purple-500" />
+            }
+          }
+          
+          return (
+            <Card key={festiveDate.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{festiveDate.name}</CardTitle>
+                {getIcon(festiveDate.icon)}
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {sectionDonations.length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {festiveDate.description || 'Donaciones festivas'}
+                </p>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {/* Lista de donaciones */}

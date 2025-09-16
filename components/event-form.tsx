@@ -45,10 +45,21 @@ export function EventForm({ onSuccess }: EventFormProps) {
     setIsSubmitting(true)
     
     try {
-      // Simular creación de evento
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      console.log("Evento creado:", data)
+      const response = await fetch('/api/activities', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Error al crear la actividad')
+      }
+
+      const createdActivity = await response.json()
+      console.log("Actividad creada:", createdActivity)
       
       setIsSuccess(true)
       form.reset()
@@ -57,7 +68,8 @@ export function EventForm({ onSuccess }: EventFormProps) {
         onSuccess()
       }
     } catch (error) {
-      console.error("Error al crear evento:", error)
+      console.error("Error al crear actividad:", error)
+      alert('Error al crear la actividad. Por favor, inténtalo de nuevo.')
     } finally {
       setIsSubmitting(false)
     }

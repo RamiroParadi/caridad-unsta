@@ -117,26 +117,48 @@ export default function DynamicFestiveDonationPage({ params }: { params: { id: s
     setIsSubmitting(true)
 
     try {
-      // Primero intentar crear la sección si no existe
-      let sectionId = params.id
-      try {
-        const sectionResponse = await fetch('/api/donations/sections', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: festiveDateData?.name || 'Fecha Festiva',
-            description: festiveDateData?.description || 'Donación para fecha festiva'
-          }),
-        })
-        
-        if (sectionResponse.ok) {
-          const section = await sectionResponse.json()
-          sectionId = section.id
+      // Usar el sectionId de la fecha festiva existente
+      let sectionId = (festiveDateData as any).sectionId
+      
+      // Si no hay sectionId, crear una nueva sección
+      if (!sectionId) {
+        try {
+          const sectionResponse = await fetch('/api/donations/sections', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: festiveDateData?.name || 'Fecha Festiva',
+              description: festiveDateData?.description || 'Donación para fecha festiva'
+            }),
+          })
+          
+          if (sectionResponse.ok) {
+            const section = await sectionResponse.json()
+            sectionId = section.id
+            
+            // Actualizar la fecha festiva para que tenga el sectionId correcto
+            await fetch('/api/admin/festive-dates', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                id: params.id,
+                sectionId: sectionId
+              }),
+            })
+          }
+        } catch (error) {
+          console.log('Error creando sección:', error)
+          toast({
+            title: "Error",
+            description: "No se pudo crear la sección de donación",
+            variant: "destructive"
+          })
+          return
         }
-      } catch (error) {
-        console.log('Usando ID por defecto para la sección')
       }
 
       const response = await fetch('/api/donations', {

@@ -41,3 +41,28 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Eliminar la sección usando el servicio
+    await DonationDbService.deleteDonationSection(id)
+
+    return NextResponse.json({ message: 'Section deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting donation section:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

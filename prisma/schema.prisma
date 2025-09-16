@@ -77,6 +77,24 @@ model DonationSection {
   @@map("donation_sections")
 }
 
+model FestiveDate {
+  id          String     @id @default(cuid())
+  name        String
+  description String
+  startDate   DateTime
+  endDate     DateTime
+  isEnabled   Boolean    @default(false)
+  icon        String     @default("heart")
+  gradient    String     @default("from-purple-500 to-pink-600")
+  bgGradient  String     @default("from-purple-50 to-pink-50")
+  items       String[]   @default(["Elementos varios"])
+  sectionId   String?    // Referencia a la sección de donación asociada
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("festive_dates")
+}
+
 model Donation {
   id          String          @id @default(cuid())
   amount      Float
