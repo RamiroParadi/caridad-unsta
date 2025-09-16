@@ -57,10 +57,11 @@ model Notification {
   message   String
   type      NotificationType @default(GENERAL)
   isActive  Boolean          @default(true)
+  isGlobal  Boolean          @default(false) // Nueva: indica si es una notificación global
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?          // Opcional: null para notificaciones globales
+  user      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }

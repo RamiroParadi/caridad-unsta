@@ -1,11 +1,12 @@
 import { prisma } from '@/lib/prisma'
-import { NotificationType } from '../../app/generated/prisma'
+import { NotificationType } from '@/app/generated/prisma'
 
 export interface CreateNotificationData {
-  userId: string
+  userId?: string
   title: string
   message: string
   type?: NotificationType
+  isGlobal?: boolean
 }
 
 export interface UpdateNotificationData {
@@ -20,10 +21,11 @@ export class NotificationService {
   static async createNotification(data: CreateNotificationData) {
     return await prisma.notification.create({
       data: {
-        userId: data.userId,
+        userId: data.isGlobal ? null : data.userId,
         title: data.title,
         message: data.message,
-        type: data.type || NotificationType.GENERAL
+        type: data.type || NotificationType.GENERAL,
+        isGlobal: data.isGlobal || false
       }
     })
   }
@@ -50,20 +52,27 @@ export class NotificationService {
     return notifications
   }
 
-  // Obtener notificaciones por usuario
+  // Obtener notificaciones por usuario (incluye globales y personales)
   static async getNotificationsByUser(userId: string) {
     return await prisma.notification.findMany({
-      where: { userId },
+      where: {
+        OR: [
+          { userId: userId }, // Notificaciones personales
+          { isGlobal: true }  // Notificaciones globales
+        ]
+      },
       orderBy: { createdAt: 'desc' }
     })
   }
 
-  // Obtener notificaciones activas por usuario
+  // Obtener notificaciones activas por usuario (incluye globales y personales)
   static async getActiveNotificationsByUser(userId: string) {
     return await prisma.notification.findMany({
       where: {
-        userId,
-        isActive: true
+        OR: [
+          { userId: userId, isActive: true }, // Notificaciones personales activas
+          { isGlobal: true, isActive: true }  // Notificaciones globales activas
+        ]
       },
       orderBy: { createdAt: 'desc' }
     })
