@@ -20,6 +20,7 @@ model User {
   activities    ActivityParticipant[]
   donations     Donation[]
   notifications Notification[]
+  notificationReads NotificationRead[]
 
   @@map("users")
 }
@@ -62,8 +63,21 @@ model Notification {
   updatedAt DateTime         @updatedAt
   userId    String?          // Opcional: null para notificaciones globales
   user      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationReads NotificationRead[]
 
   @@map("notifications")
+}
+
+model NotificationRead {
+  id             String       @id @default(cuid())
+  userId         String
+  notificationId String
+  readAt         DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationId])
+  @@map("notification_reads")
 }
 
 model DonationSection {

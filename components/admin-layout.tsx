@@ -4,6 +4,7 @@ import { AdminSidebar } from "@/components/admin-sidebar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { UserButton } from "@clerk/nextjs"
+import { NotificationBell } from "@/components/notification-bell"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -23,6 +24,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div className="text-sm text-gray-600">
               Bienvenido, Administrador
             </div>
+            <NotificationBell />
             <UserButton 
               afterSignOutUrl="/" 
               appearance={{

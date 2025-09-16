@@ -10,7 +10,7 @@ import { useUserProfile } from "@/lib/hooks/use-user-profile"
 import { useUser } from "@clerk/nextjs"
 import Image from "next/image"
 import NotificationsModal from "@/components/notifications-modal"
-import NotificationsPopover from "@/components/notifications-popover"
+import { NotificationBell } from "@/components/notification-bell"
 
 interface StudentLayoutProps {
   children: React.ReactNode
@@ -67,14 +67,8 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
         {/* Controles del header */}
         <div className="ml-auto flex items-center gap-4">
           <div className="flex items-center gap-3">
-            {/* Campanita de notificaciones como popover */}
-            <NotificationsPopover>
-              <button 
-                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg group"
-              >
-                <Bell className="h-4 w-4 group-hover:animate-pulse" />
-              </button>
-            </NotificationsPopover>
+            {/* Campanita de notificaciones con contador */}
+            <NotificationBell />
             
             <Link 
               href="/dashboards/admin"

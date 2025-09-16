@@ -61,6 +61,11 @@ export class NotificationService {
           { isGlobal: true }  // Notificaciones globales
         ]
       },
+      include: {
+        notificationReads: {
+          where: { userId: userId }
+        }
+      },
       orderBy: { createdAt: 'desc' }
     })
   }
@@ -73,6 +78,11 @@ export class NotificationService {
           { userId: userId, isActive: true }, // Notificaciones personales activas
           { isGlobal: true, isActive: true }  // Notificaciones globales activas
         ]
+      },
+      include: {
+        notificationReads: {
+          where: { userId: userId }
+        }
       },
       orderBy: { createdAt: 'desc' }
     })
@@ -149,5 +159,76 @@ export class NotificationService {
       activeNotifications,
       notificationsByType
     }
+  }
+
+  // Marcar notificación como leída
+  static async markAsRead(userId: string, notificationId: string) {
+    return await prisma.notificationRead.upsert({
+      where: {
+        userId_notificationId: {
+          userId,
+          notificationId
+        }
+      },
+      update: {
+        readAt: new Date()
+      },
+      create: {
+        userId,
+        notificationId,
+        readAt: new Date()
+      }
+    })
+  }
+
+  // Obtener contador de notificaciones no leídas
+  static async getUnreadCount(userId: string) {
+    const notifications = await prisma.notification.findMany({
+      where: {
+        OR: [
+          { userId: userId, isActive: true }, // Notificaciones personales activas
+          { isGlobal: true, isActive: true }  // Notificaciones globales activas
+        ]
+      },
+      include: {
+        notificationReads: {
+          where: { userId: userId }
+        }
+      }
+    })
+
+    // Contar notificaciones que no han sido leídas
+    const unreadCount = notifications.filter(notification => 
+      notification.notificationReads.length === 0
+    ).length
+
+    return unreadCount
+  }
+
+  // Marcar todas las notificaciones como leídas
+  static async markAllAsRead(userId: string) {
+    const notifications = await prisma.notification.findMany({
+      where: {
+        OR: [
+          { userId: userId, isActive: true }, // Notificaciones personales activas
+          { isGlobal: true, isActive: true }  // Notificaciones globales activas
+        ]
+      }
+    })
+
+    const readRecords = notifications.map(notification => ({
+      userId,
+      notificationId: notification.id,
+      readAt: new Date()
+    }))
+
+    if (readRecords.length > 0) {
+      await prisma.notificationRead.createMany({
+        data: readRecords,
+        skipDuplicates: true
+      })
+    }
+
+    return readRecords.length
   }
 }
