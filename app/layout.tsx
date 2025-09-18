@@ -37,13 +37,13 @@ export default function RootLayout({
       signUpFallbackRedirectUrl="/dashboards/usuario"
     >
       <html lang="en">
-        
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          >
-            {children}
-            <Toaster />
-          </body>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          suppressHydrationWarning={true}
+        >
+          {children}
+          <Toaster />
+        </body>
       </html>
     </ClerkProvider>
   );
