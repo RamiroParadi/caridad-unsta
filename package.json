@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --ignore-path .eslintignore",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix --ignore-path .eslintignore"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.10",

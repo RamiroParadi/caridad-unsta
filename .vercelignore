@@ -1,0 +1,14 @@
+node_modules
+.next
+app/generated
+prisma/generated
+**/*.js
+**/*.mjs
+**/wasm.js
+**/query_engine*
+**/index.js
+**/index.mjs
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

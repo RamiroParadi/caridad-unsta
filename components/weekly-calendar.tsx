@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, Users } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { format, startOfWeek, addDays, isSameDay, isToday, addWeeks, subWeeks } from 'date-fns'
 import { es } from 'date-fns/locale'
 

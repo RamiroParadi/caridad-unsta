@@ -5,11 +5,10 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, CheckCircle, Gift, Calendar, ArrowRight } from "lucide-react"
+import { ArrowLeft, CheckCircle, Gift, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 const festiveDonationSchema = z.object({

@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Users, Search, Mail, Phone, Calendar, ArrowLeft } from "lucide-react"
+import { Users, Search, Mail, Phone, ArrowLeft } from "lucide-react"
 
 // Mock data de participantes
 const mockParticipants = [
@@ -132,7 +132,7 @@ interface ParticipantListProps {
   onBack: () => void
 }
 
-export function ParticipantList({ eventId, eventTitle, onBack }: ParticipantListProps) {
+export function ParticipantList({ eventTitle, onBack }: ParticipantListProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("TODOS")
 

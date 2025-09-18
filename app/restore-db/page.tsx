@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Database, CheckCircle, AlertCircle, RefreshCw } from "lucide-react"
+import { CheckCircle, AlertCircle, RefreshCw } from "lucide-react"
 
 export default function RestoreDbPage() {
   const [isLoading, setIsLoading] = useState(false)

@@ -74,7 +74,7 @@ interface EventCardProps {
   isQuickRegistering?: string | null
 }
 
-function EventCard({ event, onRegister, onQuickRegister, isRegistered, isQuickRegistering }: EventCardProps) {
+function EventCard({ event, onQuickRegister, isRegistered, isQuickRegistering }: EventCardProps) {
   console.log(`Evento ${event.id}: isRegistered=${isRegistered}, isQuickRegistering=${isQuickRegistering}`)
   
   const formatDate = (dateString: string) => {

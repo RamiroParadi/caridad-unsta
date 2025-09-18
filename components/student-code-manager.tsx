@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { GraduationCap, Save, Edit3, Check, X } from "lucide-react"
+import { GraduationCap, Edit3, Check, X } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
 export function StudentCodeManager() {
@@ -65,7 +65,7 @@ export function StudentCodeManager() {
           variant: "destructive"
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Error de conexión",

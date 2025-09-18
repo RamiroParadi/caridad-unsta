@@ -1,0 +1,10 @@
+node_modules/
+.next/
+app/generated/
+prisma/generated/
+**/*.js
+**/*.mjs
+**/wasm.js
+**/query_engine*
+**/index.js
+**/index.mjs

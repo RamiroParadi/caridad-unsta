@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, CheckCircle, User, Phone, Mail, Calendar } from "lucide-react"
+import { ArrowLeft, CheckCircle, User, Calendar } from "lucide-react"
 
 const eventRegistrationSchema = z.object({
   fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),

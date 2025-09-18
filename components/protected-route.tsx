@@ -1,7 +1,6 @@
 "use client"
 
 import { useUserRole } from "@/lib/hooks/use-user-role"
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,8 +13,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles, fallbackUrl = '/dashboards/usuario' }: ProtectedRouteProps) {
-  const { user, isAdmin, isStudent, isAuthenticated, isLoading } = useUserRole()
-  const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useUserRole()
   const [shouldRender, setShouldRender] = useState(false)
 
   useEffect(() => {
