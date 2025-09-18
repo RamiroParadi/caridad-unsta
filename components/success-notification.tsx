@@ -6,21 +6,21 @@ import { Button } from "@/components/ui/button"
 
 interface SuccessNotificationProps {
   message: string
-  onClose: () => void
+  onCloseAction: () => void
   duration?: number
 }
 
-export function SuccessNotification({ message, onClose, duration = 4000 }: SuccessNotificationProps) {
+export function SuccessNotification({ message, onCloseAction, duration = 4000 }: SuccessNotificationProps) {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false)
-      setTimeout(onClose, 300) // Esperar a que termine la animación
+      setTimeout(onCloseAction, 300) // Esperar a que termine la animación
     }, duration)
 
     return () => clearTimeout(timer)
-  }, [duration, onClose])
+  }, [duration, onCloseAction])
 
   if (!isVisible) return null
 
@@ -37,7 +37,7 @@ export function SuccessNotification({ message, onClose, duration = 4000 }: Succe
             size="sm"
             onClick={() => {
               setIsVisible(false)
-              setTimeout(onClose, 300)
+              setTimeout(onCloseAction, 300)
             }}
             className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-100"
           >

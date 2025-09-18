@@ -1,9 +1,8 @@
 "use client"
 
 import { StudentSidebar } from "@/components/student-sidebar"
-import { Separator } from "@/components/ui/separator"
 import { CustomUserButton } from "@/components/custom-user-button"
-import { ChevronDown, GraduationCap, Shield, Bell, Menu, X, User } from "lucide-react"
+import { Shield, Menu, X, User } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { useUserProfile } from "@/lib/hooks/use-user-profile"

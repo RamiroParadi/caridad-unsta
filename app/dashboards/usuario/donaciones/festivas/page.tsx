@@ -24,6 +24,10 @@ interface FestiveDateStatus {
   startDate: string
   endDate: string
   description: string
+  icon?: string
+  gradient?: string
+  bgGradient?: string
+  items?: string[]
 }
 
 const festiveDates: FestiveDate[] = [
@@ -102,14 +106,14 @@ export default function FestivasDonationPage() {
       }
       
       // Si no existe en las fechas estáticas, crear una dinámica
-      const IconComponent = getIconComponent(status.icon)
+      const IconComponent = getIconComponent(status.icon || 'heart')
       return {
         id: status.id,
         name: status.name,
         description: status.description,
         icon: IconComponent,
-        gradient: status.gradient,
-        bgGradient: status.bgGradient,
+        gradient: status.gradient || 'from-purple-500 to-pink-600',
+        bgGradient: status.bgGradient || 'from-purple-50 to-pink-50',
         date: `${new Date(status.startDate).toLocaleDateString('es-ES')} - ${new Date(status.endDate).toLocaleDateString('es-ES')}`,
         items: status.items || ['Elementos varios']
       }

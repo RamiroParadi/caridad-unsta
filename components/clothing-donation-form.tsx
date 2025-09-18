@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,7 +15,7 @@ const clothingDonationSchema = z.object({
   clothing: z.string().min(10, "Describe la ropa que vas a donar (mínimo 10 caracteres)"),
   condition: z.string().min(5, "Especifica el estado de la ropa"),
   description: z.string().optional(),
-  isAnonymous: z.boolean().default(false)
+  isAnonymous: z.boolean()
 })
 
 type ClothingDonationFormData = z.infer<typeof clothingDonationSchema>

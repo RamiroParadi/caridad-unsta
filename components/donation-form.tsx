@@ -15,7 +15,7 @@ import Link from "next/link"
 const donationSchema = z.object({
   amount: z.number().min(1, "El monto debe ser mayor a 0"),
   description: z.string().optional(),
-  isAnonymous: z.boolean().default(false)
+  isAnonymous: z.boolean()
 })
 
 type DonationFormData = z.infer<typeof donationSchema>

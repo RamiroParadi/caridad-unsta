@@ -4,8 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, MapPin, Users, Clock, ArrowRight, CheckCircle, UserPlus } from "lucide-react"
-import { QuickRegistrationForm } from "./quick-registration-form"
+import { Calendar, MapPin, Users, Clock, CheckCircle, UserPlus } from "lucide-react"
 
 // Mock data - en el futuro esto vendrá de la base de datos
 const mockEvents = [
@@ -70,15 +69,9 @@ const mockEvents = [
 interface EventCardProps {
   event: typeof mockEvents[0]
   onRegister: (eventId: string) => void
-  isRegistered?: boolean
-}
-
-interface EventCardProps {
-  event: typeof mockEvents[0]
-  onRegister: (eventId: string) => void
   onQuickRegister: (eventId: string) => void
   isRegistered?: boolean
-  isQuickRegistering?: boolean
+  isQuickRegistering?: string | null
 }
 
 function EventCard({ event, onRegister, onQuickRegister, isRegistered, isQuickRegistering }: EventCardProps) {
@@ -270,7 +263,7 @@ export function EventCards({ onEventRegister, onQuickRegister }: EventCardsProps
   }
 
   const activeEvents = mockEvents.filter(event => event.status === 'ACTIVO')
-  const completedEvents = mockEvents.filter(event => event.status === 'COMPLETO')
+  const completedEvents: typeof mockEvents = []
 
   return (
     <div className="space-y-6">
@@ -286,7 +279,7 @@ export function EventCards({ onEventRegister, onQuickRegister }: EventCardsProps
                 onRegister={handleRegister}
                 onQuickRegister={handleQuickRegister}
                 isRegistered={registeredEvents.includes(event.id)}
-                isQuickRegistering={isQuickRegistering === event.id}
+                isQuickRegistering={isQuickRegistering === event.id ? event.id : null}
               />
             ))}
           </div>
@@ -311,7 +304,7 @@ export function EventCards({ onEventRegister, onQuickRegister }: EventCardsProps
                 onRegister={() => {}}
                 onQuickRegister={() => {}}
                 isRegistered={false}
-                isQuickRegistering={false}
+                isQuickRegistering={null}
               />
             ))}
           </div>

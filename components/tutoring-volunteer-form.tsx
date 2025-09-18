@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, CheckCircle, BookOpen, Clock, Users, MapPin } from "lucide-react"
+import { ArrowLeft, CheckCircle, BookOpen} from "lucide-react"
 import Link from "next/link"
 
 const tutoringSchema = z.object({

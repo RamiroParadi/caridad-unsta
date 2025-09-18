@@ -16,7 +16,7 @@ const festiveDonationSchema = z.object({
   occasion: z.string().min(1, "Selecciona una ocasión festiva"),
   items: z.string().min(10, "Describe los regalos que vas a donar (mínimo 10 caracteres)"),
   description: z.string().optional(),
-  isAnonymous: z.boolean().default(false)
+  isAnonymous: z.boolean()
 })
 
 type FestiveDonationFormData = z.infer<typeof festiveDonationSchema>

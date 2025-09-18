@@ -103,6 +103,9 @@ export class FestiveDateService {
     endDate: string
     items: string[]
     sectionId?: string
+    icon?: string
+    gradient?: string
+    bgGradient?: string
   }>) {
     const results = []
     
@@ -120,7 +123,7 @@ export class FestiveDateService {
               description: festiveDate.description,
               startDate: new Date(festiveDate.startDate),
               endDate: new Date(festiveDate.endDate),
-              isEnabled: festiveDate.isEnabled,
+              isEnabled: true,
               icon: festiveDate.icon,
               gradient: festiveDate.gradient,
               bgGradient: festiveDate.bgGradient,
@@ -133,7 +136,7 @@ export class FestiveDateService {
           results.push({ id, migrated: false, reason: 'Already exists' })
         }
       } catch (error) {
-        results.push({ id, migrated: false, error: error.message })
+        results.push({ id, migrated: false, error: error instanceof Error ? error.message : 'Unknown error' })
       }
     }
     

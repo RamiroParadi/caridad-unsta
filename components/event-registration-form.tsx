@@ -22,7 +22,7 @@ const eventRegistrationSchema = z.object({
   motivation: z.string().min(10, "Cuéntanos por qué quieres participar (mínimo 10 caracteres)"),
   specialNeeds: z.string().optional(),
   agreeTerms: z.boolean().refine(val => val === true, "Debes aceptar los términos y condiciones"),
-  agreePhoto: z.boolean().default(false)
+  agreePhoto: z.boolean().optional()
 })
 
 type EventRegistrationFormData = z.infer<typeof eventRegistrationSchema>

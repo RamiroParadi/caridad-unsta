@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, CheckCircle, User, Phone, Mail, Calendar, Zap } from "lucide-react"
+import { ArrowLeft, CheckCircle, User, Mail, Calendar, Zap } from "lucide-react"
 import { useUserInfo } from "@/lib/hooks/use-user-info"
 
 const quickRegistrationSchema = z.object({
@@ -19,7 +19,7 @@ const quickRegistrationSchema = z.object({
   emergencyPhone: z.string().min(10, "Teléfono de emergencia requerido"),
   motivation: z.string().min(10, "Cuéntanos por qué quieres participar (mínimo 10 caracteres)"),
   agreeTerms: z.boolean().refine(val => val === true, "Debes aceptar los términos y condiciones"),
-  agreePhoto: z.boolean().default(false)
+  agreePhoto: z.boolean()
 })
 
 type QuickRegistrationFormData = z.infer<typeof quickRegistrationSchema>
@@ -27,11 +27,11 @@ type QuickRegistrationFormData = z.infer<typeof quickRegistrationSchema>
 interface QuickRegistrationFormProps {
   eventId: string
   eventTitle: string
-  onBack: () => void
-  onSuccess?: () => void
+  onBackAction: () => void
+  onSuccessAction?: () => void
 }
 
-export function QuickRegistrationForm({ eventId, eventTitle, onBack, onSuccess }: QuickRegistrationFormProps) {
+export function QuickRegistrationForm({ eventId, eventTitle, onBackAction, onSuccessAction }: QuickRegistrationFormProps) { 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const { userInfo, isLoaded } = useUserInfo()
@@ -65,8 +65,8 @@ export function QuickRegistrationForm({ eventId, eventTitle, onBack, onSuccess }
       setIsSuccess(true)
       form.reset()
       
-      if (onSuccess) {
-        onSuccess()
+      if (onSuccessAction) {
+        onSuccessAction()
       }
     } catch (error) {
       console.error("Error al inscribirse al evento:", error)
@@ -110,7 +110,7 @@ export function QuickRegistrationForm({ eventId, eventTitle, onBack, onSuccess }
                 Inscribirse a Otro Evento
               </Button>
               <Button 
-                onClick={onBack}
+                onClick={onBackAction}
                 className="bg-green-600 hover:bg-green-700"
               >
                 Volver a Eventos
@@ -127,7 +127,7 @@ export function QuickRegistrationForm({ eventId, eventTitle, onBack, onSuccess }
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ArrowLeft className="h-5 w-5" />
-          <Button variant="ghost" onClick={onBack} className="p-0 h-auto text-blue-600 hover:text-blue-800">
+          <Button variant="ghost" onClick={onBackAction} className="p-0 h-auto text-blue-600 hover:text-blue-800">
             Volver a Eventos
           </Button>
         </CardTitle>

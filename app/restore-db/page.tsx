@@ -10,8 +10,11 @@ export default function RestoreDbPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<{
     success: boolean
-    message: string
+    message?: string
+    error?: string
     data?: unknown
+    details?: string
+    adminUser?: { email: string; studentCode: string; name?: string }
   } | null>(null)
 
   const restoreDatabase = async () => {
@@ -31,6 +34,7 @@ export default function RestoreDbPage() {
     } catch (error) {
       setResult({
         success: false,
+        message: 'Error de conexión',
         error: 'Error de conexión',
         details: error instanceof Error ? error.message : 'Error desconocido'
       })

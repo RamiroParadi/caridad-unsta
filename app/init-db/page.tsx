@@ -9,8 +9,11 @@ export default function InitDbPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<{
     success: boolean
-    message: string
+    message?: string
+    error?: string
     data?: unknown
+    details?: string
+    adminUser?: { email: string; studentCode: string }
   } | null>(null)
 
   const initializeDatabase = async () => {

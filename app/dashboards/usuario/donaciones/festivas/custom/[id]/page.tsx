@@ -19,6 +19,7 @@ interface FestiveDateData {
   gradient: string
   bgGradient: string
   items: string[]
+  sectionId?: string
 }
 
 export default function DynamicFestiveDonationPage({ params }: { params: { id: string } }) {
@@ -46,7 +47,9 @@ export default function DynamicFestiveDonationPage({ params }: { params: { id: s
       const response = await fetch('/api/admin/festive-dates')
       if (response.ok) {
         const data = await response.json()
-        const festiveDate = Object.values(data).find((date: any) => date.id === params.id)
+        const festiveDate = Object.values(data).find((date: unknown): date is FestiveDateData => 
+          typeof date === 'object' && date !== null && 'id' in date && (date as FestiveDateData).id === params.id
+        )
         
         if (festiveDate) {
           setFestiveDateData(festiveDate)
@@ -118,7 +121,7 @@ export default function DynamicFestiveDonationPage({ params }: { params: { id: s
 
     try {
       // Usar el sectionId de la fecha festiva existente
-      let sectionId = (festiveDateData as any).sectionId
+      let sectionId = festiveDateData?.sectionId
       
       // Si no hay sectionId, crear una nueva sección
       if (!sectionId) {

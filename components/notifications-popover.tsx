@@ -34,7 +34,7 @@ export default function NotificationsPopover({ children }: NotificationsPopoverP
       })
       .then((data) => {
         if (!isMounted) return
-        const fetched: NotificationItem[] = (data.notifications || []).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        const fetched: NotificationItem[] = (data.notifications || []).sort((a: NotificationItem, b: NotificationItem) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setNotifications(fetched)
       })
       .catch((e) => {

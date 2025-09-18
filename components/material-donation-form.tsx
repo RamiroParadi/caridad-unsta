@@ -16,7 +16,7 @@ const materialDonationSchema = z.object({
   materials: z.string().min(10, "Describe los materiales que vas a donar (mínimo 10 caracteres)"),
   condition: z.string().min(5, "Especifica el estado de los materiales"),
   description: z.string().optional(),
-  isAnonymous: z.boolean().default(false)
+  isAnonymous: z.boolean()
 })
 
 type MaterialDonationFormData = z.infer<typeof materialDonationSchema>

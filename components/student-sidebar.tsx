@@ -72,7 +72,7 @@ export function StudentSidebar({ collapsed = false }: { collapsed?: boolean }) {
 
       {/* Contenido del sidebar */}
       <div className="flex-1 flex flex-col py-4">
-        {items.map((item, index) => {
+        {items.map((item) => {
           const IconComponent = item.icon
           const isActive = pathname === item.url
           
