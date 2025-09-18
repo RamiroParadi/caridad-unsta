@@ -1,13 +1,18 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Database, CheckCircle, AlertCircle, RefreshCw } from "lucide-react"
 
 export default function RestoreDbPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{
+    success: boolean
+    message: string
+    data?: unknown
+  } | null>(null)
 
   const restoreDatabase = async () => {
     setIsLoading(true)
@@ -125,7 +130,7 @@ export default function RestoreDbPage() {
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800 font-medium">Próximos pasos:</p>
               <ol className="text-sm text-blue-700 mt-2 list-decimal list-inside space-y-1">
-                <li>Ve a <a href="/sign-in" className="underline">Iniciar Sesión</a></li>
+                <li>Ve a <Link href="/sign-in" className="underline">Iniciar Sesión</Link></li>
                 <li>Usa el email: admin@unsta.edu.ar</li>
                 <li>Regístrate o inicia sesión con Clerk</li>
                 <li>¡Ya podrás acceder al sistema!</li>

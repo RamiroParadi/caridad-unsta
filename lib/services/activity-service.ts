@@ -72,6 +72,44 @@ export class ActivityService {
     })
   }
 
+  // Obtener actividades por rango de fechas
+  static async getActivitiesByDateRange(startDate: Date, endDate: Date, activeOnly: boolean = true) {
+    const whereClause: {
+      date: {
+        gte: Date
+        lte: Date
+      }
+      isActive?: boolean
+    } = {
+      date: {
+        gte: startDate,
+        lte: endDate
+      }
+    }
+
+    if (activeOnly) {
+      whereClause.isActive = true
+    }
+
+    return await prisma.activity.findMany({
+      where: whereClause,
+      orderBy: { date: 'asc' },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+
   // Obtener actividad por ID
   static async getActivityById(id: string) {
     return await prisma.activity.findUnique({

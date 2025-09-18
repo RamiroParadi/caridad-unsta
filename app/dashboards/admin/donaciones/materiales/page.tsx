@@ -22,7 +22,6 @@ import {
   Search, 
   Filter, 
   Download, 
-  Plus, 
   Edit, 
   Trash2, 
   Eye,
@@ -383,10 +382,6 @@ export default function MaterialesDonationsPage() {
               <Home className="h-4 w-4 mr-2" />
               Página Principal
             </Link>
-          </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Donación
           </Button>
         </div>
       </div>

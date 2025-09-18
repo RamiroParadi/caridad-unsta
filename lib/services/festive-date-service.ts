@@ -95,7 +95,15 @@ export class FestiveDateService {
   }
 
   // Migrar datos existentes desde memoria
-  static async migrateExistingData(existingData: Record<string, any>) {
+  static async migrateExistingData(existingData: Record<string, {
+    id: string
+    name: string
+    description: string
+    startDate: string
+    endDate: string
+    items: string[]
+    sectionId?: string
+  }>) {
     const results = []
     
     for (const [id, festiveDate] of Object.entries(existingData)) {

@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
             <NotificationBell />
             <UserButton 
-              afterSignOutUrl="/" 
+              afterSignOutUrl="/sign-in" 
               appearance={{
                 elements: {
                   avatarBox: "w-8 h-8"

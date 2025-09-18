@@ -15,7 +15,6 @@ import {
   Shirt, 
   BookOpen, 
   Gift, 
-  DollarSign,
   Send,
   CheckCircle
 } from "lucide-react"
@@ -172,8 +171,6 @@ export default function StudentDonationsPage() {
         return <BookOpen className="h-5 w-5" />
       case 'festivas':
         return <Gift className="h-5 w-5" />
-      case 'monetarias':
-        return <DollarSign className="h-5 w-5" />
       default:
         return <Heart className="h-5 w-5" />
     }

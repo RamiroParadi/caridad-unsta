@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client')
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -42,10 +42,6 @@ async function main() {
       {
         name: 'Materiales de Estudio',
         description: 'Libros, útiles escolares y materiales educativos'
-      },
-      {
-        name: 'Donación Monetaria',
-        description: 'Contribución económica para causas solidarias'
       },
       {
         name: 'Donaciones Festivas',
@@ -151,13 +147,13 @@ async function main() {
         sectionId: createdSections[0].id // Materiales de Estudio
       },
       {
-        amount: 10000,
-        description: 'Donación monetaria para causas solidarias',
+        amount: 0,
+        description: 'Donación de ropa para personas necesitadas',
         donorName: 'Administrador UNSTA',
         donorEmail: 'admin@unsta.edu.ar',
         status: 'CONFIRMADA',
         userId: adminUser.id,
-        sectionId: createdSections[1].id // Donación Monetaria
+        sectionId: createdSections[2].id // Donaciones de Vestimenta
       }
     ]
 

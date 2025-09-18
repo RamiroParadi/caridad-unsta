@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
         console.log('⚠️ Usuario con mismo email ya existe, actualizando ClerkId:', existingEmailUser.clerkId)
         // Actualizar el ClerkId del usuario existente
         user = await UserService.updateUser(existingEmailUser.id, { 
-          clerkId: clerkId,
           name: name,
           studentCode: studentCode || existingEmailUser.studentCode
         })

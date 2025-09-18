@@ -33,18 +33,22 @@ export async function GET(request: NextRequest) {
     // Crear secciones de donación
     const sections = [
       {
+        id: 'materiales-1',
         name: 'Materiales de Estudio',
         description: 'Libros, útiles escolares y materiales educativos'
       },
       {
+        id: 'monetaria-1',
         name: 'Donación Monetaria', 
         description: 'Contribución económica para causas solidarias'
       },
       {
+        id: 'festivas-1',
         name: 'Donaciones Festivas',
         description: 'Celebraciones y eventos especiales de caridad'
       },
       {
+        id: 'vestimenta-1',
         name: 'Donaciones de Vestimenta',
         description: 'Ropa y calzado para personas necesitadas'
       }
@@ -52,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     for (const section of sections) {
       await prisma.donationSection.upsert({
-        where: { name: section.name },
+        where: { id: section.id },
         update: {},
         create: section
       })
@@ -62,6 +66,7 @@ export async function GET(request: NextRequest) {
     // Crear actividades de ejemplo
     const activities = [
       {
+        id: 'actividad-1',
         title: 'Recolección de Alimentos',
         description: 'Recolección de alimentos no perecederos para familias necesitadas',
         date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -69,6 +74,7 @@ export async function GET(request: NextRequest) {
         maxParticipants: 20
       },
       {
+        id: 'actividad-2',
         title: 'Tutorías Gratuitas',
         description: 'Sesiones de tutoría para estudiantes de secundaria',
         date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
@@ -76,6 +82,7 @@ export async function GET(request: NextRequest) {
         maxParticipants: 15
       },
       {
+        id: 'actividad-3',
         title: 'Limpieza de Espacios Verdes',
         description: 'Mantenimiento y limpieza de parques y espacios públicos',
         date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
@@ -83,6 +90,7 @@ export async function GET(request: NextRequest) {
         maxParticipants: 25
       },
       {
+        id: 'actividad-4',
         title: 'Compañía a Adultos Mayores',
         description: 'Visitas y compañía a adultos mayores en hogares de ancianos',
         date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
@@ -93,7 +101,7 @@ export async function GET(request: NextRequest) {
 
     for (const activity of activities) {
       await prisma.activity.upsert({
-        where: { title: activity.title },
+        where: { id: activity.id },
         update: {},
         create: activity
       })

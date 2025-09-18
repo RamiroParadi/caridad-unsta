@@ -107,8 +107,7 @@ export async function PUT(request: NextRequest) {
     const updatedNotification = await NotificationService.updateNotification(id, {
       title: title.trim(),
       message: message.trim(),
-      type: NotificationType.GENERAL,
-      isGlobal: true // Mantener como notificación global
+      type: NotificationType.GENERAL
     })
 
     return NextResponse.json({ 

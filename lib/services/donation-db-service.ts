@@ -67,7 +67,11 @@ export class DonationDbService {
     offset?: number
   }) {
     try {
-      const where: any = {}
+      const where: {
+        sectionId?: string
+        status?: DonationStatus
+        userId?: string
+      } = {}
       
       if (filters?.sectionId) {
         where.sectionId = filters.sectionId
@@ -159,6 +163,32 @@ export class DonationDbService {
   }
 
   /**
+   * Actualizar solo el estado de una donación
+   */
+  static async updateDonationStatus(id: string, status: DonationStatus) {
+    try {
+      const donation = await prisma.donation.update({
+        where: { id },
+        data: { status },
+        include: {
+          section: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            }
+          }
+        }
+      })
+      return donation
+    } catch (error) {
+      console.error('Error updating donation status:', error)
+      throw error
+    }
+  }
+
+  /**
    * Eliminar una donación
    */
   static async deleteDonation(id: string) {
@@ -228,7 +258,7 @@ export class DonationDbService {
    */
   static async getDonationStats(sectionId?: string) {
     try {
-      const where: any = {}
+      const where: { sectionId?: string } = {}
       if (sectionId) {
         where.sectionId = sectionId
       }

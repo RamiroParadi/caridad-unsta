@@ -8,7 +8,6 @@ import {
   Shirt, 
   BookOpen, 
   PartyPopper, 
-  DollarSign, 
   Calendar,
   ChevronRight
 } from "lucide-react"
@@ -37,12 +36,6 @@ const items = [
     url: "/dashboards/usuario/donaciones/festivas",
     icon: PartyPopper,
     shortTitle: "Festivas"
-  },
-  {
-    title: "Donación Monetaria",
-    url: "/dashboards/usuario/donaciones/monetarias",
-    icon: DollarSign,
-    shortTitle: "Monetaria"
   },
   {
     title: "Eventos de Caridad",

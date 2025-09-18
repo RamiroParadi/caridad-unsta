@@ -7,7 +7,11 @@ import { Database, CheckCircle, AlertCircle } from "lucide-react"
 
 export default function InitDbPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{
+    success: boolean
+    message: string
+    data?: unknown
+  } | null>(null)
 
   const initializeDatabase = async () => {
     setIsLoading(true)

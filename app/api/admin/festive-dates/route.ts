@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       gradient: gradient || 'from-purple-500 to-pink-600',
       bgGradient: bgGradient || 'from-purple-50 to-pink-50',
       items: items || ['Elementos varios'],
-      sectionId
+      sectionId: sectionId || undefined
     })
 
     console.log(`New festive date created:`, festiveDate)

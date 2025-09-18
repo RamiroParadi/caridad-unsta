@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Home, Bell, Heart, DollarSign, Activity, Users, ChevronDown, ChevronRight } from "lucide-react"
+import { Home, Bell, Heart, Activity, Users, ChevronDown, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -62,18 +62,13 @@ const items: MenuItem[] = [
     ],
   },
   {
-    title: "Donación Monetaria",
-    url: "/dashboards/admin/donacion-monetaria",
-    icon: DollarSign,
-  },
-  {
     title: "Notificaciones",
     url: "/dashboards/admin/notificaciones",
     icon: Bell,
   },
   {
-    title: "Eventos de Caridad",
-    url: "/dashboards/admin/eventos",
+    title: "Actividades",
+    url: "/dashboards/admin/actividades",
     icon: Activity,
   },
 ]

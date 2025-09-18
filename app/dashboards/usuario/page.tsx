@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Heart, Users, Target, Globe, BookOpen, DollarSign, Moon, PartyPopper, ArrowRight, CheckCircle, Star } from "lucide-react"
+import { Heart, Users, Target, Globe, BookOpen, Moon, PartyPopper, ArrowRight, CheckCircle, Star } from "lucide-react"
 
 export default function StudentDashboard() {
   const donationSections = [
@@ -12,14 +12,6 @@ export default function StudentDashboard() {
       textColor: "text-white",
       icon: BookOpen,
       description: "Libros, útiles escolares y materiales educativos"
-    },
-    {
-      title: "DONACIÓN MONETARIA",
-      url: "/dashboards/usuario/donaciones/monetarias",
-      bgColor: "bg-gradient-to-br from-green-500 to-green-700",
-      textColor: "text-white",
-      icon: DollarSign,
-      description: "Contribución económica para causas solidarias"
     },
     {
       title: "NOCHES DE CARIDAD",

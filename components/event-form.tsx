@@ -24,20 +24,29 @@ type EventFormData = z.infer<typeof eventSchema>
 
 interface EventFormProps {
   onSuccess?: () => void
+  initialData?: {
+    title?: string
+    description?: string
+    date?: string
+    location?: string
+    maxParticipants?: string
+  }
+  isEditing?: boolean
+  activityId?: string
 }
 
-export function EventForm({ onSuccess }: EventFormProps) {
+export function EventForm({ onSuccess, initialData, isEditing = false, activityId }: EventFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      date: "",
-      location: "",
-      maxParticipants: undefined
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      date: initialData?.date || "",
+      location: initialData?.location || "",
+      maxParticipants: initialData?.maxParticipants ? parseInt(initialData.maxParticipants) : undefined
     }
   })
 
@@ -45,8 +54,11 @@ export function EventForm({ onSuccess }: EventFormProps) {
     setIsSubmitting(true)
     
     try {
-      const response = await fetch('/api/activities', {
-        method: 'POST',
+      const url = isEditing ? `/api/activities/${activityId}` : '/api/activities'
+      const method = isEditing ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -55,21 +67,21 @@ export function EventForm({ onSuccess }: EventFormProps) {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Error al crear la actividad')
+        throw new Error(error.error || 'Error al procesar la actividad')
       }
 
-      const createdActivity = await response.json()
-      console.log("Actividad creada:", createdActivity)
-      
+      const result = await response.json()
+      console.log(isEditing ? "Actividad actualizada:" : "Actividad creada:", result)
+
       setIsSuccess(true)
       form.reset()
-      
+
       if (onSuccess) {
         onSuccess()
       }
     } catch (error) {
-      console.error("Error al crear actividad:", error)
-      alert('Error al crear la actividad. Por favor, inténtalo de nuevo.')
+      console.error(isEditing ? "Error al actualizar actividad:" : "Error al crear actividad:", error)
+      alert(isEditing ? 'Error al actualizar la actividad. Por favor, inténtalo de nuevo.' : 'Error al crear la actividad. Por favor, inténtalo de nuevo.')
     } finally {
       setIsSubmitting(false)
     }
@@ -84,7 +96,7 @@ export function EventForm({ onSuccess }: EventFormProps) {
             <div>
               <h3 className="text-xl font-bold text-green-800">¡Evento Creado!</h3>
               <p className="text-green-600 mt-2">
-                El evento <strong>"{form.getValues("title")}"</strong> ha sido creado exitosamente.
+                El evento <strong>&ldquo;{form.getValues("title")}&rdquo;</strong> ha sido creado exitosamente.
               </p>
               <p className="text-sm text-green-500 mt-2">
                 Los usuarios podrán verlo y unirse desde el dashboard.
@@ -115,10 +127,10 @@ export function EventForm({ onSuccess }: EventFormProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Crear Nueva Actividad
+          {isEditing ? 'Editar Actividad' : 'Crear Nueva Actividad'}
         </CardTitle>
         <CardDescription>
-          Crea una nueva actividad de caridad para que los usuarios puedan participar
+          {isEditing ? 'Modifica los detalles de la actividad' : 'Crea una nueva actividad de caridad para que los usuarios puedan participar'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -189,7 +201,7 @@ export function EventForm({ onSuccess }: EventFormProps) {
             className="w-full bg-blue-600 hover:bg-blue-700"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Creando Actividad..." : "Crear Actividad"}
+            {isSubmitting ? (isEditing ? "Actualizando..." : "Creando Actividad...") : (isEditing ? "Actualizar Actividad" : "Crear Actividad")}
           </Button>
         </form>
       </CardContent>

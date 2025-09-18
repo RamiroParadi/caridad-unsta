@@ -24,11 +24,11 @@ export default function SignOutPage() {
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // Redirigir usando window.location para evitar problemas de estado
-      window.location.href = '/welcome'
+      window.location.href = '/sign-in'
     } catch (error) {
       console.error('Error durante sign out:', error)
       // Fallback: redirigir de todas formas
-      window.location.href = '/welcome'
+      window.location.href = '/sign-in'
     }
   }
 
