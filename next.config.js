@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingRoot: __dirname,
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.
@@ -10,6 +11,7 @@ const nextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  skipTrailingSlashRedirect: true,
   images: {
     remotePatterns: [
       {

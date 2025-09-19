@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, CheckCircle, Shirt } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@clerk/nextjs"
 import Link from "next/link"
 
 const clothingDonationSchema = z.object({
@@ -27,6 +29,9 @@ interface ClothingDonationFormProps {
 export function ClothingDonationForm({ onSuccess }: ClothingDonationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [vestimentaSectionId, setVestimentaSectionId] = useState<string | null>(null)
+  const { toast } = useToast()
+  const { user } = useUser()
 
   const form = useForm<ClothingDonationFormData>({
     resolver: zodResolver(clothingDonationSchema),
@@ -38,23 +43,105 @@ export function ClothingDonationForm({ onSuccess }: ClothingDonationFormProps) {
     }
   })
 
+  // Obtener la sección de vestimenta al cargar el componente
+  useEffect(() => {
+    const fetchVestimentaSection = async () => {
+      try {
+        const response = await fetch('/api/donations/sections')
+        if (response.ok) {
+          const sections = await response.json()
+          const vestimentaSection = sections.find((section: any) => 
+            section.name.toLowerCase().includes('vestimenta') ||
+            section.name.toLowerCase().includes('ropa') ||
+            section.name.toLowerCase().includes('vestimenta')
+          )
+          
+          if (vestimentaSection) {
+            setVestimentaSectionId(vestimentaSection.id)
+          } else {
+            // Si no existe, crear la sección
+            const createResponse = await fetch('/api/donations/sections', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: 'Donaciones de Vestimenta',
+                description: 'Ropa, zapatos y accesorios en buen estado'
+              })
+            })
+            
+            if (createResponse.ok) {
+              const newSection = await createResponse.json()
+              setVestimentaSectionId(newSection.id)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching vestimenta section:', error)
+      }
+    }
+
+    fetchVestimentaSection()
+  }, [])
+
   const onSubmit = async (data: ClothingDonationFormData) => {
+    if (!user || !vestimentaSectionId) {
+      toast({
+        title: "❌ Error",
+        description: "No se pudo procesar la donación. Intenta nuevamente.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsSubmitting(true)
     
     try {
-      // Simular envío de donación
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Crear la descripción combinada
+      const fullDescription = `Ropa: ${data.clothing}\nEstado: ${data.condition}${data.description ? `\nInformación adicional: ${data.description}` : ''}`
       
-      console.log("Donación de vestimenta enviada:", data)
-      
-      setIsSuccess(true)
-      form.reset()
-      
-      if (onSuccess) {
-        onSuccess()
+      const donationData = {
+        amount: 0, // Las donaciones de vestimenta no tienen monto monetario
+        description: fullDescription,
+        isAnonymous: data.isAnonymous,
+        status: 'PENDIENTE',
+        userId: user.id,
+        sectionId: vestimentaSectionId,
+        donorName: data.isAnonymous ? 'Anónimo' : (user.fullName || user.firstName || 'Usuario'),
+        donorEmail: data.isAnonymous ? undefined : user.primaryEmailAddress?.emailAddress
+      }
+
+      const response = await fetch('/api/donations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(donationData)
+      })
+
+      if (response.ok) {
+        setIsSuccess(true)
+        form.reset()
+        
+        toast({
+          title: "✅ Donación enviada",
+          description: "Tu donación de vestimenta ha sido registrada exitosamente.",
+          variant: "default",
+        })
+        
+        if (onSuccess) {
+          onSuccess()
+        }
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error al enviar la donación')
       }
     } catch (error) {
       console.error("Error al enviar donación:", error)
+      toast({
+        title: "❌ Error al enviar donación",
+        description: error instanceof Error ? error.message : "No se pudo enviar la donación. Intenta nuevamente.",
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -169,10 +256,16 @@ export function ClothingDonationForm({ onSuccess }: ClothingDonationFormProps) {
           <Button 
             type="submit" 
             className="w-full bg-blue-600 hover:bg-blue-700"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !vestimentaSectionId}
           >
             {isSubmitting ? "Enviando Donación..." : "Enviar Donación de Vestimenta"}
           </Button>
+          
+          {!vestimentaSectionId && (
+            <p className="text-sm text-orange-600 text-center">
+              Cargando configuración de donaciones...
+            </p>
+          )}
         </form>
 
         {/* Información sobre requisitos */}

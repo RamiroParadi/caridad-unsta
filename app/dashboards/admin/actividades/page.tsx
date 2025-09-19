@@ -4,6 +4,7 @@ import { EventForm } from "@/components/event-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { ParticipantsModal } from "@/components/participants-modal"
 import { Plus, Calendar, MapPin, Users, Trash2, Edit } from "lucide-react"
 import { useState, useEffect } from "react"
 
@@ -34,6 +35,8 @@ export default function ActividadesPage() {
   const [deleting, setDeleting] = useState(false)
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
   const [showEditForm, setShowEditForm] = useState(false)
+  const [showParticipantsModal, setShowParticipantsModal] = useState(false)
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
 
   useEffect(() => {
     fetchActivities()
@@ -109,6 +112,16 @@ export default function ActividadesPage() {
     setEditingActivity(null)
     setShowEditForm(false)
     fetchActivities() // Recargar las actividades después de editar
+  }
+
+  const handleViewParticipants = (activity: Activity) => {
+    setSelectedActivity(activity)
+    setShowParticipantsModal(true)
+  }
+
+  const handleCloseParticipantsModal = () => {
+    setShowParticipantsModal(false)
+    setSelectedActivity(null)
   }
 
   if (showForm) {
@@ -245,7 +258,11 @@ export default function ActividadesPage() {
                     <Edit className="h-4 w-4 mr-1" />
                     Editar
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleViewParticipants(activity)}
+                  >
                     Ver Participantes ({activity.participants.length})
                   </Button>
                   <Button 
@@ -309,6 +326,16 @@ export default function ActividadesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de participantes */}
+      {selectedActivity && (
+        <ParticipantsModal
+          isOpen={showParticipantsModal}
+          onClose={handleCloseParticipantsModal}
+          activityId={selectedActivity.id}
+          activityTitle={selectedActivity.title}
+        />
+      )}
     </div>
   )
 }

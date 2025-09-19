@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Heart, Users, Target, Globe, BookOpen, Moon, PartyPopper, ArrowRight, CheckCircle, Star } from "lucide-react"
+import { Heart, Users, Target, Globe, BookOpen, Moon, PartyPopper, ArrowRight, CheckCircle, Star, Activity } from "lucide-react"
 
 export default function StudentDashboard() {
   const donationSections = [
@@ -28,6 +28,14 @@ export default function StudentDashboard() {
       textColor: "text-white",
       icon: PartyPopper,
       description: "Celebraciones y eventos especiales de caridad"
+    },
+    {
+      title: "ACTIVIDADES",
+      url: "/dashboards/usuario/eventos",
+      bgColor: "bg-gradient-to-br from-green-500 to-green-700",
+      textColor: "text-white",
+      icon: Activity,
+      description: "Participa en actividades de voluntariado"
     }
   ]
 

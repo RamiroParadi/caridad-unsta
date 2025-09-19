@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   title: "Sistema de Caridad UNSTA",
   description: "Plataforma de donaciones y actividades solidarias de la Universidad del Norte Santo Tomás de Aquino",
   icons: {
-    icon: '/logounsta.png',
-    shortcut: '/logounsta.png',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
     apple: '/logounsta.png',
   },
 };

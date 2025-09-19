@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Activity, Bell, Heart, Users, RefreshCw, DollarSign, UserCheck, UserX, Home } from "lucide-react"
+import { Activity, Bell, Heart, Users, RefreshCw, UserCheck, UserX, Home } from "lucide-react"
 import { useAdminStats } from "@/lib/hooks/use-admin-stats"
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Estadísticas principales */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -195,21 +195,6 @@ export default function AdminDashboard() {
             <div className="text-2xl font-bold">{stats?.totalDonations || 0}</div>
             <p className="text-xs text-muted-foreground">
               Todas las donaciones recibidas
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Donaciones Monetarias
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats?.totalDonationAmount || 0)}</div>
-            <p className="text-xs text-muted-foreground">
-              Solo donaciones en efectivo
             </p>
           </CardContent>
         </Card>
