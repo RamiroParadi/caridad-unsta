@@ -7,6 +7,7 @@ import { Activity, Bell, Heart, Users, RefreshCw, UserCheck, UserX, Home } from 
 import { useAdminStats } from "@/lib/hooks/use-admin-stats"
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { ChartsContainer } from "@/components/dashboard/charts-container"
 
 interface RecentActivity {
   id: string
@@ -213,6 +214,17 @@ export default function AdminDashboard() {
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Gráficos y Visualizaciones */}
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold">Análisis y Tendencias</h3>
+          <p className="text-sm text-muted-foreground">
+            Visualización de datos y estadísticas del sistema
+          </p>
+        </div>
+        <ChartsContainer />
       </div>
 
       {/* Actividades recientes */}
